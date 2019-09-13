@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+package jobUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -11,6 +9,10 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InnerJoin {
     public static class userMapper extends Mapper <Object, Text, Text, Text>
