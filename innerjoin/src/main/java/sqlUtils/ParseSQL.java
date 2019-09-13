@@ -48,7 +48,7 @@ public class ParseSQL {
             return;
         }
 
-        StringTokenizer tokenizer = new StringTokenizer(query, ", .>", false);
+        StringTokenizer tokenizer = new StringTokenizer(query, ", .", false);
 
         String token = tokenizer.nextToken(); // ignoring first word : SELECT
 
@@ -75,7 +75,8 @@ public class ParseSQL {
             table2 = tokenizer.nextToken();
 
             // get join condition
-            token = tokenizer.nextToken(); // ignore table name
+            token = tokenizer.nextToken(); // ignore "ON"
+            token = tokenizer.nextToken();
             operationColumns.add((tokenizer.nextToken()));
 
             while (!token.equalsIgnoreCase("WHERE")) {
@@ -84,19 +85,21 @@ public class ParseSQL {
 
             while (tokenizer.hasMoreTokens()) {
                 // replace with string buffer if needed later
-                whereClause += " " + tokenizer.nextToken();
+                whereClause += " " + tokenizer.nextToken(" ");
             }
         } else {
             table2 = null;
+            whereClause = null;
 
             // read group by columns
             do {
                 token = tokenizer.nextToken();
                 operationColumns.add(token);
             } while (!token.equalsIgnoreCase("HAVING"));
+            operationColumns.remove(operationColumns.size() - 1);
 
             // read condition of having clause; need only the number after the '>' symbol
-            tokenizer.nextToken();
+            tokenizer.nextToken(">");
             comparisonNumber = Integer.parseInt(tokenizer.nextToken());
         }
 
