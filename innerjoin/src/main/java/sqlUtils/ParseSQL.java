@@ -22,6 +22,9 @@ public class ParseSQL {
     // stores either the column on which join is to be performed, or on which columns grouping is done
     private ArrayList<String> operationColumns;
 
+    // stores the aggregate function to be performed
+    private AggregateFunction aggregateFunction;
+
     private int comparisonNumber;
 
     private String whereClause;
@@ -32,6 +35,7 @@ public class ParseSQL {
         this.query = query;
         columns = new ArrayList<>();
         operationColumns = new ArrayList<>();
+        aggregateFunction = AggregateFunction.NONE;
         comparisonNumber = -1;
         whereClause = "";
         parsed = false;
@@ -98,6 +102,18 @@ public class ParseSQL {
             } while (!token.equalsIgnoreCase("HAVING"));
             operationColumns.remove(operationColumns.size() - 1);
 
+            // get the aggregate function
+            String func = columns.get(columns.size() - 1).split("\\(")[0];
+            if (func.equalsIgnoreCase(AggregateFunction.SUM.name())) {
+                aggregateFunction = AggregateFunction.SUM;
+            } else if (func.equalsIgnoreCase(AggregateFunction.MAX.name())) {
+                aggregateFunction = AggregateFunction.MAX;
+            } else if (func.equalsIgnoreCase(AggregateFunction.MIN.name())) {
+                aggregateFunction = AggregateFunction.MIN;
+            } else {
+                aggregateFunction = AggregateFunction.COUNT;
+            }
+
             // read condition of having clause; need only the number after the '>' symbol
             tokenizer.nextToken(">");
             comparisonNumber = Integer.parseInt(tokenizer.nextToken());
@@ -161,5 +177,12 @@ public class ParseSQL {
             parseQuery();
         }
         return whereClause;
+    }
+
+    public AggregateFunction getAggregateFunction() throws SQLException {
+        if (!parsed) {
+            parseQuery();
+        }
+        return aggregateFunction;
     }
 }
