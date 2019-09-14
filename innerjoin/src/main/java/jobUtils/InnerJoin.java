@@ -38,6 +38,24 @@ public class InnerJoin {
         }
     }
 
+    public static void main(String[] args)
+            throws IOException, InterruptedException, ClassNotFoundException {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "InnerJoin");
+        job.setJarByClass(InnerJoin.class);
+        job.setReducerClass(ReduceJoinReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class, userMapper.class);
+        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class, zipMapper.class);
+        Path outputPath = new Path(args[2]);
+
+        FileOutputFormat.setOutputPath(job, outputPath);
+        outputPath.getFileSystem(conf).delete(outputPath, true);
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+
     public static class ReduceJoinReducer extends Reducer <Text, Text, Text, Text>
     {
         public void reduce(Text key, Iterable<Text> values, Context context)
@@ -49,7 +67,7 @@ public class InnerJoin {
             //double total = 0.0;
             //int count = 0;
             for (Text t : values) {
-                String parts[] = t.toString().split("#");
+                String[] parts = t.toString().split("#");
                 if (parts[0].equals("user")) {
                     users.add(parts[1]);
                 }
@@ -65,24 +83,5 @@ public class InnerJoin {
 
             }
         }
-    }
-
-    public static void main(String[] args)
-            throws IOException, InterruptedException, ClassNotFoundException {
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance();
-        job.setJobName("InnerJoin");
-        job.setJarByClass(InnerJoin.class);
-        job.setReducerClass(ReduceJoinReducer.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-
-        MultipleInputs.addInputPath(job, new Path(args[0]),TextInputFormat.class, userMapper.class);
-        MultipleInputs.addInputPath(job, new Path(args[1]),TextInputFormat.class, zipMapper.class);
-        Path outputPath = new Path(args[2]);
-
-        FileOutputFormat.setOutputPath(job, outputPath);
-        outputPath.getFileSystem(conf).delete(outputPath, true);
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
