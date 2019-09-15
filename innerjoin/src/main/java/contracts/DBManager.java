@@ -8,6 +8,18 @@ import sqlUtils.Tables;
  */
 public class DBManager implements Cloneable {
 
+    private DBManager() {
+        // private constructor to restrict object creation
+    }
+
+    /**
+     * Method that returns the index of a given column
+     *
+     * @param table  The table in which the column is present
+     * @param column The column whose index is required
+     * @return index of the column
+     * @throws IllegalArgumentException when either the table or the column are invalid
+     */
     public static int getColumnIndex(Tables table, String column) throws IllegalArgumentException {
         switch (table) {
             case USERS:
@@ -23,7 +35,14 @@ public class DBManager implements Cloneable {
         }
     }
 
-    public static String getFileName(Tables table) {
+    /**
+     * Method that returns the name of the csv file corresponding to a given table
+     *
+     * @param table The table corresponding to which the csv file name is required
+     * @return csv file name for the given table
+     * @throws IllegalArgumentException when the table name is invalid (highly unlikely)
+     */
+    public static String getFileName(Tables table) throws IllegalArgumentException {
         switch (table) {
             case USERS:
                 return UsersContract.getFileName();
@@ -38,6 +57,11 @@ public class DBManager implements Cloneable {
         }
     }
 
+    /**
+     * Method overridden to ensure that this class is not cloned
+     * @return null
+     * @throws CloneNotSupportedException since this class cannot be cloned
+     */
     @Override
     protected Object clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException("This class cannot be cloned");
