@@ -74,8 +74,8 @@ public class ParseSQL {
             table1 = Tables.ZIPCODES;
         } else if (table.equalsIgnoreCase(Tables.MOVIES.name())) {
             table1 = Tables.MOVIES;
-        } else if (table.equalsIgnoreCase(Tables.RATINGS.name())) {
-            table1 = Tables.RATINGS;
+        } else if (table.equalsIgnoreCase(Tables.RATING.name())) {
+            table1 = Tables.RATING;
         } else {
             throw new SQLException("Table " + table + " does not exist");
         }
@@ -95,8 +95,8 @@ public class ParseSQL {
                 table2 = Tables.ZIPCODES;
             } else if (table.equalsIgnoreCase(Tables.MOVIES.name())) {
                 table2 = Tables.MOVIES;
-            } else if (table.equalsIgnoreCase(Tables.RATINGS.name())) {
-                table2 = Tables.RATINGS;
+            } else if (table.equalsIgnoreCase(Tables.RATING.name())) {
+                table2 = Tables.RATING;
             } else {
                 throw new SQLException("Table " + table + " does not exist");
             }

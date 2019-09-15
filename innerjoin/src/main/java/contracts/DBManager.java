@@ -28,7 +28,7 @@ public class DBManager implements Cloneable {
                 return ZipcodesContract.getColumnIndex(column);
             case MOVIES:
                 return MoviesContract.getColumnIndex(column);
-            case RATINGS:
+            case RATING:
                 return RatingsContract.getColumnIndex(column);
             default:
                 throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
@@ -50,12 +50,67 @@ public class DBManager implements Cloneable {
                 return ZipcodesContract.getFileName();
             case MOVIES:
                 return MoviesContract.getFileName();
-            case RATINGS:
+            case RATING:
                 return RatingsContract.getFileName();
             default:
                 throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
         }
     }
+
+    /**
+     * Given a pair of tables, returns the join key.
+     *
+     * @param table1 table name
+     * @param table2 table name
+     * @return index of the join key
+     * @throws IllegalArgumentException when the table in invalid
+     */
+
+    public static String getJoinKey(Tables table1, Tables table2)
+            throws IllegalArgumentException {
+
+        switch (table1.getValue() ^ table2.getValue()) {
+            case 1 ^ 2:
+                return "zipcode";
+            case 1 ^ 3:
+                return null;
+            case 1 ^ 4:
+                return "userid";
+            case 2 ^ 3:
+                return null;
+            case 2 ^ 4:
+                return null;
+            case 3 ^ 4:
+                return "movieid";
+            default:
+                throw new IllegalArgumentException("Table " + table1.name().toLowerCase()
+                        + " or " + table2.name().toLowerCase() + " not exist");
+        }
+    }
+
+//     /**
+//      * Returns contract class given Table
+//      *
+//      * @param table The table corresponding to which the csv file name is required
+//      * @return csv file name for the given table
+//      * @throws IllegalArgumentException when the table name is invalid (highly unlikely)
+//      */
+//     public static String getFileName(Tables table) throws IllegalArgumentException {
+//         switch (table) {
+//             case USERS:
+//                 return UsersContract.getFileName();
+//             case ZIPCODES:
+//                 return ZipcodesContract.getFileName();
+//             case MOVIES:
+//                 return MoviesContract.getFileName();
+//             case RATING:
+//                 return RatingsContract.getFileName();
+//             default:
+//                 throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
+//         }
+//     }
+
+
 
     /**
      * Method overridden to ensure that this class is not cloned
