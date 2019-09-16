@@ -1,7 +1,7 @@
 package sqlUtils;
 
 public enum Tables {
-    USERS(1), ZIPCODES(2), MOVIES(3), RATING(4);
+    NONE(0), USERS(1), ZIPCODES(2), MOVIES(3), RATING(4);
 
     private final int value;
 

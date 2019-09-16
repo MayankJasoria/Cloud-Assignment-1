@@ -164,7 +164,6 @@ public class InnerJoin {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
-
             List table1List = new ArrayList<>();
             List table2List = new ArrayList<>();
             //String name = "";

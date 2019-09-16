@@ -1,79 +1,168 @@
 package jobUtils;
 
-import jobUtils.countFunction.CountMapper;
-import jobUtils.countFunction.CountReducer;
-import jobUtils.maxFunction.MaxMapper;
-import jobUtils.maxFunction.MaxReducer;
-import jobUtils.minFunction.MinMapper;
-import jobUtils.minFunction.MinReducer;
-import jobUtils.sumFunction.SumMapper;
-import jobUtils.sumFunction.SumReducer;
+import contracts.DBManager;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import sqlUtils.AggregateFunction;
 import sqlUtils.ParseSQL;
+import sqlUtils.Tables;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Iterator;
+
 
 public class GroupBy {
 
-    private ParseSQL parseSQL;
+    // TODO: Add Combiners
 
-    public GroupBy(ParseSQL parseSQL) {
-        this.parseSQL = parseSQL;
+    public static void execute(ParseSQL parsedSQL) throws IOException,
+            InterruptedException, ClassNotFoundException, SQLException {
+        Configuration conf = new Configuration();
+
+        conf.setEnum("table", parsedSQL.getTable1());
+        conf.setEnum("aggregateFunction", parsedSQL.getAggregateFunction());
+        conf.setInt("comparisonNumber", parsedSQL.getComparisonNumber());
+        conf.setStrings("columns", parsedSQL.getColumns().toArray(new String[0]));
+        conf.setStrings("operationColumns", parsedSQL.getOperationColumns().toArray(new String[0]));
+
+        Job job = Job.getInstance(conf, "GroupBy");
+        job.setJarByClass(GroupBy.class);
+
+        // setting the reducer
+        job.setReducerClass(GroupByReducer.class);
+
+        // defining output
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        // passing the required csv file as file path
+        MultipleInputs.addInputPath(job, new Path("/" + DBManager.getFileName(parsedSQL.getTable1())),
+                TextInputFormat.class, GroupByMapper.class);
+
+        // defining path of output file
+        Path outputPath = new Path("/output"); // hardcoded for now
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        outputPath.getFileSystem(conf).delete(outputPath, true);
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-    public void execute() throws IOException, InterruptedException, ClassNotFoundException, SQLException {
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "aggregateFunction");
+    // FIXME: even tuples which fail the condition are getting written
+    public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
 
-        // initiate aggregate job according to the required aggregate function
-        switch (parseSQL.getAggregateFunction()) {
-            case COUNT:
-                // Jar location should be the same as the one where mapper and reducer are present
-                job.setJarByClass(CountMapper.class);
+        private static String[] columns;
+        private static String[] operationColumns;
+        private static AggregateFunction aggregateFunction;
+        private static Tables table;
+        private static int comparisonNumber;
 
-                // setting mapper and reducer
-                job.setMapperClass(CountMapper.class);
-                job.setReducerClass(CountReducer.class);
+        @Override
+        protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            columns = conf.getStrings("columns");
+            operationColumns = conf.getStrings("operationColumns");
+            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
+            table = conf.getEnum("table", Tables.NONE);
+            super.setup(context);
+        }
 
-                // setting output values
-                job.setOutputKeyClass(Text.class);
-                job.setOutputValueClass(Text.class);
-                break;
-            case SUM:
-                job.setJarByClass(SumMapper.class);
+        @Override
+        public void map(Object key, Text value, Context context)
+                throws IOException, InterruptedException {
+            String[] record = value.toString().split(",");
+            StringBuilder builder = new StringBuilder(
+                    record[DBManager.getColumnIndex(table, columns[0])]);
+            for (int i = 1; i < columns.length - 1; i++) {
+                builder.append(",").append(
+                        record[DBManager.getColumnIndex(table, columns[i])]);
+            }
+            Text keyOut = new Text(builder.toString());
+            String aggregateColumn = operationColumns[operationColumns.length - 1]
+                    .split("\\(")[1]
+                    .split("\\)")[0];
+            int outputValue = Integer.parseInt(record[DBManager.getColumnIndex(table,
+                    aggregateColumn)]);
+            switch (aggregateFunction) {
+                case MAX:
+                case MIN:
+                    // same behavior for both
+                    if (outputValue > comparisonNumber) {
+                        context.write(keyOut, new Text(Integer.toString(outputValue)));
+                    }
+                    break;
+                case SUM:
+                    context.write(keyOut, new Text(Integer.toString(outputValue)));
+                    break;
+                case COUNT:
+                    context.write(keyOut, new Text("1"));
+                    break;
+                default:
+                    // not likely to be encountered
+                    throw new IllegalArgumentException("The aggregate function is not valid");
+            }
+        }
+    }
 
-                // setting mapper and reducer
-                job.setMapperClass(SumMapper.class);
-                job.setReducerClass(SumReducer.class);
+    public static class GroupByReducer extends Reducer<Text, Text, Text, Text> {
 
-                // setting output values
-                job.setOutputKeyClass(Text.class);
-                job.setOutputValueClass(Text.class);
-                break;
-            case MAX:
-                job.setJarByClass(MaxMapper.class);
 
-                // setting mapper and reducer
-                job.setMapperClass(MaxMapper.class);
-                job.setReducerClass(MaxReducer.class);
+        private static AggregateFunction aggregateFunction;
+        private static int comparisonNumber;
 
-                // setting output values
-                job.setOutputKeyClass(Text.class);
-                job.setOutputValueClass(Text.class);
-                break;
-            case MIN:
-                job.setJarByClass(MinMapper.class);
+        @Override
+        protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
 
-                // setting mapper and reducer
-                job.setMapperClass(MinMapper.class);
-                job.setReducerClass(MinReducer.class);
+            super.setup(context);
+        }
 
-                // setting output values
-                job.setOutputKeyClass(Text.class);
-                job.setOutputValueClass(Text.class);
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context)
+                throws IOException, InterruptedException {
+            Iterator<Text> it = values.iterator();
+            switch (aggregateFunction) {
+                case MIN:
+                    int min = Integer.MAX_VALUE;
+                    while (it.hasNext()) {
+                        min = Math.min(Integer.parseInt(it.next().toString()), min);
+                    }
+                    if (min > comparisonNumber) {
+                        context.write(key, new Text("," + min));
+                    }
+                    break;
+                case MAX:
+                    int max = Integer.MIN_VALUE;
+                    while (it.hasNext()) {
+                        max = Math.max(Integer.parseInt(it.next().toString()), max);
+                    }
+                    if (max > comparisonNumber) {
+                        context.write(key, new Text("," + max));
+                    }
+                    break;
+                case SUM:
+                case COUNT:
+                    // both have same behavior, except count will take sum of 0s and 1s
+                    long sum = 0;
+                    while (it.hasNext()) {
+                        sum += Integer.parseInt(it.next().toString());
+                    }
+                    if (sum > comparisonNumber) {
+                        context.write(key, new Text("," + sum));
+                    }
+                default:
+                    // not likely to be encountered
+                    throw new IllegalArgumentException("The aggregate function is not valid");
+            }
         }
     }
 }

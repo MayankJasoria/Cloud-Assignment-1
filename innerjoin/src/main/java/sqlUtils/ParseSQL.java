@@ -27,6 +27,7 @@ public class ParseSQL {
 
     private int comparisonNumber;
 
+    // FIXME: Correct the WHERE clause
     private String whereClause;
 
     private boolean parsed;
@@ -112,7 +113,7 @@ public class ParseSQL {
 
             while (tokenizer.hasMoreTokens()) {
                 // replace with string buffer if needed later
-                whereClause += " " + tokenizer.nextToken(" ");
+
             }
         } else {
             table2 = null;

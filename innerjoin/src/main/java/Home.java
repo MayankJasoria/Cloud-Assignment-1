@@ -1,20 +1,31 @@
+import jobUtils.GroupBy;
 import sqlUtils.ParseSQL;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 public class Home {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException,
+            InterruptedException, IOException, ClassNotFoundException {
         //TODO: Get SQL query from somewhere
         String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
         String query2 = "SELECT userid, movieid, MAX(rating) FROM Rating GROUP BY movieid, MAX(rating) HAVING MAX(rating)>3";
 
         // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(query1);
+        ParseSQL parseSQL = new ParseSQL(query2);
         try {
             debugging(parseSQL);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        // call required method
+        switch (parseSQL.getQueryType()) {
+            case GROUP_BY:
+                GroupBy.execute(parseSQL);
+            case INNER_JOIN:
+                // initiate inner join requirements here
         }
     }
 

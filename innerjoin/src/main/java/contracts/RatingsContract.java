@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 /**
  * Class to manage mapping of columns to their indices in the csv file.
- * Also returns the actual name of the csv file for the table "Ratings"
+ * Also returns the actual name of the csv file for the table "Rating"
  */
 public class RatingsContract {
 
@@ -26,11 +26,11 @@ public class RatingsContract {
         if (map.containsKey(column)) {
             return map.get(column);
         }
-        throw new IllegalArgumentException("Given column does not exist in Users table");
+        throw new IllegalArgumentException("Given column does not exist in Rating table");
     }
 
     public static String getFileName() {
-        return "ratings.csv";
+        return "rating.csv";
     }
 
     @Override
