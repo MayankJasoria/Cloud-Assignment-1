@@ -21,8 +21,6 @@ import java.util.Iterator;
 
 public class GroupBy {
 
-    // TODO: Add Combiners
-
     public static void execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
         Configuration conf = new Configuration();
@@ -35,6 +33,9 @@ public class GroupBy {
 
         Job job = Job.getInstance(conf, "GroupBy");
         job.setJarByClass(GroupBy.class);
+
+        // setting combiner class
+        job.setCombinerClass(GroupByCombiner.class);
 
         // setting the reducer
         job.setReducerClass(GroupByReducer.class);
@@ -56,11 +57,9 @@ public class GroupBy {
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-    // FIXME: even tuples which fail the condition are getting written
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
 
         private static String[] columns;
-        private static String[] operationColumns;
         private static AggregateFunction aggregateFunction;
         private static Tables table;
         private static int comparisonNumber;
@@ -69,9 +68,9 @@ public class GroupBy {
         protected void setup(Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
             columns = conf.getStrings("columns");
-            operationColumns = conf.getStrings("operationColumns");
             aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
             table = conf.getEnum("table", Tables.NONE);
+            comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
             super.setup(context);
         }
 
@@ -85,8 +84,9 @@ public class GroupBy {
                 builder.append(",").append(
                         record[DBManager.getColumnIndex(table, columns[i])]);
             }
+            // assuming group by is done on all columns
             Text keyOut = new Text(builder.toString());
-            String aggregateColumn = operationColumns[operationColumns.length - 1]
+            String aggregateColumn = columns[columns.length - 1]
                     .split("\\(")[1]
                     .split("\\)")[0];
             int outputValue = Integer.parseInt(record[DBManager.getColumnIndex(table,
@@ -112,6 +112,59 @@ public class GroupBy {
         }
     }
 
+    public static class GroupByCombiner extends Reducer<Text, Text, Text, Text> {
+
+
+        private static AggregateFunction aggregateFunction;
+        private static int comparisonNumber;
+
+        @Override
+        protected void setup(Context context) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
+            comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
+            super.setup(context);
+        }
+
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context)
+                throws IOException, InterruptedException {
+            Iterator<Text> it = values.iterator();
+            switch (aggregateFunction) {
+                case MIN:
+                    int min = Integer.MAX_VALUE;
+                    while (it.hasNext()) {
+                        min = Math.min(Integer.parseInt(it.next().toString()), min);
+                    }
+                    if (min > comparisonNumber) {
+                        context.write(key, new Text(Integer.toString(min)));
+                    }
+                    break;
+                case MAX:
+                    int max = Integer.MIN_VALUE;
+                    while (it.hasNext()) {
+                        max = Math.max(Integer.parseInt(it.next().toString()), max);
+                    }
+                    if (max > comparisonNumber) {
+                        context.write(key, new Text(Integer.toString(max)));
+                    }
+                    break;
+                case SUM:
+                case COUNT:
+                    // both have same behavior, except count will take sum of 0s and 1s
+                    long sum = 0;
+                    while (it.hasNext()) {
+                        sum += Integer.parseInt(it.next().toString());
+                    }
+                    context.write(key, new Text(Long.toString(sum)));
+                    break;
+                default:
+                    // not likely to be encountered
+                    throw new IllegalArgumentException("The aggregate function is not valid");
+            }
+        }
+    }
+
     public static class GroupByReducer extends Reducer<Text, Text, Text, Text> {
 
 
@@ -122,7 +175,7 @@ public class GroupBy {
         protected void setup(Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
             aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
-
+            comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
             super.setup(context);
         }
 
@@ -159,6 +212,7 @@ public class GroupBy {
                     if (sum > comparisonNumber) {
                         context.write(key, new Text("," + sum));
                     }
+                    break;
                 default:
                     // not likely to be encountered
                     throw new IllegalArgumentException("The aggregate function is not valid");

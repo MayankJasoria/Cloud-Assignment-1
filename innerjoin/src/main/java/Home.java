@@ -10,7 +10,7 @@ public class Home {
             InterruptedException, IOException, ClassNotFoundException {
         //TODO: Get SQL query from somewhere
         String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
-        String query2 = "SELECT userid, movieid, MAX(rating) FROM Rating GROUP BY movieid, MAX(rating) HAVING MAX(rating)>3";
+        String query2 = "SELECT userid, SUM(rating) FROM Rating GROUP BY userid HAVING SUM(rating)>15";
 
         // parse query to extract attributes
         ParseSQL parseSQL = new ParseSQL(query2);
@@ -33,6 +33,7 @@ public class Home {
      * Method to be used only for debugging
      *
      * @param parseSQL class being tested
+     * @throws SQLException if SQL query was not parsed successfully
      */
     private static void debugging(ParseSQL parseSQL) throws SQLException {
         System.out.println("Query: " + parseSQL.getQuery());
@@ -48,6 +49,7 @@ public class Home {
         for (String operationColumns : parseSQL.getOperationColumns()) {
             System.out.println(operationColumns);
         }
+        System.out.println("AggregateFunction: " + parseSQL.getAggregateFunction().name());
         System.out.println();
         System.out.println("Where Clause: " + parseSQL.getWhereClause());
         System.out.println("Having Clause: " + parseSQL.getColumns().get(parseSQL.getColumns().size() - 1)
