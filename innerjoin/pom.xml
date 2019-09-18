@@ -88,6 +88,11 @@
         </plugins>
     </build>
 
+    <properties>
+        <hadoop.version>3.2.0</hadoop.version>
+        <spark.version>2.4.4</spark.version>
+    </properties>
+
     <dependencies>
         <!-- log4j dependency to allow visualizing hadoop logs -->
         <dependency>
@@ -100,35 +105,35 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
-            <version>3.2.0</version>
+            <version>${hadoop.version}</version>
         </dependency>
 
         <!-- Hadoop Mapreduce Client Core -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>3.2.0</version>
+            <version>${hadoop.version}</version>
         </dependency>
 
         <!-- Hadoop common -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>3.2.0</version>
+            <version>${hadoop.version}</version>
         </dependency>
 
         <!-- Hadoop Client -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
-            <version>3.2.0</version>
+            <version>${hadoop.version}</version>
         </dependency>
 
         <!-- Spark core -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.12</artifactId>
-            <version>2.4.4</version>
+            <version>${spark.version}</version>
         </dependency>
 
     </dependencies>
