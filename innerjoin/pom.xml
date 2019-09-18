@@ -89,12 +89,20 @@
     </build>
 
     <dependencies>
+        <!-- log4j dependency to allow visualizing hadoop logs -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
         <!-- Hadoop Core -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
             <version>3.2.0</version>
         </dependency>
+
         <!-- Hadoop Mapreduce Client Core -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -102,9 +110,17 @@
             <version>3.2.0</version>
         </dependency>
 
+        <!-- Hadoop common -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
+        <!-- Hadoop Client -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
             <version>3.2.0</version>
         </dependency>
 
