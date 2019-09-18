@@ -2,7 +2,6 @@ package jobUtils;
 
 import contracts.DBManager;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -26,12 +25,17 @@ public class GroupBy {
             InterruptedException, ClassNotFoundException, SQLException {
         Configuration conf = new Configuration();
 
+        // like defined in hdfs-site.xml (required for reading file from hdfs)
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+
+        // defining properties to be used later by mapper and reducer
         conf.setEnum("table", parsedSQL.getTable1());
         conf.setEnum("aggregateFunction", parsedSQL.getAggregateFunction());
         conf.setInt("comparisonNumber", parsedSQL.getComparisonNumber());
         conf.setStrings("columns", parsedSQL.getColumns().toArray(new String[0]));
         conf.setStrings("operationColumns", parsedSQL.getOperationColumns().toArray(new String[0]));
 
+        // creating job and defining jar
         Job job = Job.getInstance(conf, "GroupBy");
         job.setJarByClass(GroupBy.class);
 
@@ -45,22 +49,17 @@ public class GroupBy {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        FileSystem fileSystem = FileSystem.get(conf);
-
         // passing the required csv file as file path
-        MultipleInputs.addInputPath(job, new Path(fileSystem.getHomeDirectory(), DBManager.getFileName(parsedSQL.getTable1())),
+        MultipleInputs.addInputPath(job,
+                new Path("/" + DBManager.getFileName(parsedSQL.getTable1())),
                 TextInputFormat.class, GroupByMapper.class);
 
         // defining path of output file
-        Path outputPath = new Path(fileSystem.getHomeDirectory(), "output"); // hardcoded for now
+        Path outputPath = new Path("/output"); // hardcoded for now
         FileOutputFormat.setOutputPath(job, outputPath);
 
+        // deleting existing outputPath file to allow reusability
         outputPath.getFileSystem(conf).delete(outputPath, true);
-
-        // this should be like defined in your mapred-site.xml
-        conf.set("mapreduce.jobtracker.address", "jobtracker.com:50001");
-        // like defined in hdfs-site.xml
-        conf.set("fs.defaultFS", "hdfs://namenode.com:9000");
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
