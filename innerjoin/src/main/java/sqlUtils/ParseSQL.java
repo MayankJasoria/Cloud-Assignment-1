@@ -27,8 +27,8 @@ public class ParseSQL {
 
     private int comparisonNumber;
 
-    // FIXME: Correct the WHERE clause
-    private String whereClause;
+    private String whereColumn;
+    private String whereValue;
 
     private boolean parsed;
 
@@ -38,14 +38,14 @@ public class ParseSQL {
         operationColumns = new ArrayList<>();
         aggregateFunction = AggregateFunction.NONE;
         comparisonNumber = -1;
-        whereClause = "";
+        whereColumn = "";
+        whereValue = "";
         parsed = false;
     }
 
     /**
      * Method which parses the given SQL Query. Prerequisite to all getter calls of this class
-     *
-     * @throws SQLException if parsing failed
+     * @throws SQLException in case the SQL query could not be parsed successfully
      */
     private void parseQuery() throws SQLException {
         if (query == null) {
@@ -111,13 +111,15 @@ public class ParseSQL {
                 token = tokenizer.nextToken();
             }
 
-            while (tokenizer.hasMoreTokens()) {
-                // replace with string buffer if needed later
+            // get column on which where clause is run
+            whereColumn = tokenizer.nextToken("=");
 
-            }
+            // get value for where clause
+            whereValue = tokenizer.nextToken();
         } else {
             table2 = null;
-            whereClause = null;
+            whereColumn = null;
+            whereValue = null;
 
             // read group by columns
             do {
@@ -150,10 +152,22 @@ public class ParseSQL {
         }
     }
 
+    /**
+     * Returns the SQL query string passed for parsing
+     *
+     * @return The SQL query string
+     */
     public String getQuery() {
         return query;
     }
 
+    /**
+     * Returns the list of columns which have been selected in SQL query
+     * @return {@link ArrayList<String>} either *  for Inner Join, or columns which
+     *          have been selected in SQL query (last value is be the aggregate
+     *          function used in Group By query)
+     * @throws SQLException in case the SQL query could not be parsed successfully
+     */
     public ArrayList<String> getColumns() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -161,6 +175,11 @@ public class ParseSQL {
         return columns;
     }
 
+    /**
+     * Returns the type of Query
+     * @return either of {@link QueryType}.INNER_JOIN or {@link QueryType}.GROUP_BY
+     * @throws SQLException in case the SQL query could not be parsed successfully
+     */
     public QueryType getQueryType() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -168,6 +187,11 @@ public class ParseSQL {
         return queryType;
     }
 
+    /**
+     * Returns the first table of Inner Join, or table for Group By, in SQL Query
+     * @return a value from {@link Tables} denoting the first table of Inner Join, or table for Group By, in SQL Query
+     * @throws SQLException  in case the SQL query could not be parsed successfully
+     */
     public Tables getTable1() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -175,6 +199,11 @@ public class ParseSQL {
         return table1;
     }
 
+    /**
+     * Returns the second table of Inner Join in SQL Query
+     * @return a value from {@link Tables} denoting the second table of Inner Join in SQL Query
+     * @throws SQLException  in case the SQL query could not be parsed successfully
+     */
     public Tables getTable2() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -182,6 +211,11 @@ public class ParseSQL {
         return table2;
     }
 
+    /**
+     * Returns the list of columns on which SQL operation is to be performed
+     * @return {@link ArrayList<String>} columns on which SQL operation is to be performed
+     * @throws SQLException in case the SQL query could not be parsed successfully
+     */
     public ArrayList<String> getOperationColumns() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -189,6 +223,11 @@ public class ParseSQL {
         return operationColumns;
     }
 
+    /**
+     * Returns the number to be compared against for Having clause of given SQL query
+     * @return the number to be compared against for the Having clause.
+     * @throws SQLException in case the SQL query could not be parsed successfully
+     */
     public int getComparisonNumber() throws SQLException {
         if (!parsed) {
             parseQuery();
@@ -196,17 +235,41 @@ public class ParseSQL {
         return comparisonNumber;
     }
 
-    public String getWhereClause() throws SQLException {
+    /**
+     * Returns the column name (table.column) to be tested for in the where clause of the given SQL query.
+     *
+     * @return column name to be tested for in the where clause.
+     * @throws SQLException in case SQL query could not be parsed successfully
+     */
+    public String getWhereColumn() throws SQLException {
         if (!parsed) {
             parseQuery();
         }
-        return whereClause;
+        return whereColumn;
     }
 
+    /**
+     * Returns the type of {@link AggregateFunction} used in the SQL query
+     * @return Type of aggregate query used, out of the values of {@link AggregateFunction}
+     * @throws SQLException in case SQL query could not be parsed successfully
+     */
     public AggregateFunction getAggregateFunction() throws SQLException {
         if (!parsed) {
             parseQuery();
         }
         return aggregateFunction;
+    }
+
+    /**
+     * Returns the value of the column to be tested for where clause of the given SQL query.
+     *
+     * @return value of the column to be tested for where clause
+     * @throws SQLException in case SQL query could not be parsed successfully
+     */
+    public String getWhereValue() throws SQLException {
+        if (!parsed) {
+            parseQuery();
+        }
+        return whereValue;
     }
 }

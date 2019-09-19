@@ -77,7 +77,7 @@ public class InnerJoin {
 
 
         outputPath.getFileSystem(conf).delete(outputPath, true);
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        job.waitForCompletion(true);
     }
 
     /**

@@ -61,7 +61,7 @@ public class GroupBy {
         // deleting existing outputPath file to allow reusability
         outputPath.getFileSystem(conf).delete(outputPath, true);
 
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        job.waitForCompletion(true);
     }
 
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
