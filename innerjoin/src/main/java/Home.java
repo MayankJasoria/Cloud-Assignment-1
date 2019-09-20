@@ -28,7 +28,6 @@ public class Home {
                 SparkGroupBy.execute(parseSQL);
             case INNER_JOIN:
                 // TODO: initiate inner join requirements here.
-                System.exit(0);
         }
     }
 
