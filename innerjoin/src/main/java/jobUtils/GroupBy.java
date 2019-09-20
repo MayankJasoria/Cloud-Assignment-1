@@ -62,6 +62,10 @@ public class GroupBy {
         outputPath.getFileSystem(conf).delete(outputPath, true);
 
         job.waitForCompletion(true);
+        long execTime = job.getFinishTime() - job.getStartTime();
+
+        // TODO: something about execution time
+        // TODO: write results to JSON output
     }
 
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
