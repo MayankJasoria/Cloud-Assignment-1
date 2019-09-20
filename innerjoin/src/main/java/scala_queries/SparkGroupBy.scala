@@ -1,4 +1,4 @@
-package scala
+package scala_queries
 
 import contracts.DBManager
 import org.apache.spark.sql.SparkSession
@@ -9,6 +9,7 @@ import scala.annotation.switch
 import scala.collection.JavaConverters._
 
 object SparkGroupBy {
+
 	def execute(parseSQL: ParseSQL): Unit = {
 		
 		// convert columns to required _c# format, where # denotes a number
@@ -41,22 +42,22 @@ object SparkGroupBy {
 		// TODO: Fix switch warning (syntax correction possibly needed)
 		(parseSQL.getAggregateFunction: @switch) match {
 			case AggregateFunction.SUM =>
-				res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail: _*)
+        res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail.asInstanceOf[Seq[String]]: _*)
 					.agg(sum(aggColumn).as("sum"))
 					.filter("sum>" + parseSQL.getComparisonNumber);
 			
 			case AggregateFunction.COUNT =>
-				res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail: _*)
+        res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail.asInstanceOf[Seq[String]]: _*)
 					.agg(count(aggColumn).as("count"))
 					.filter("count>" + parseSQL.getComparisonNumber);
 			
 			case AggregateFunction.MAX =>
-				res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail: _*)
+        res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail.asInstanceOf[Seq[String]]: _*)
 					.agg(max(aggColumn).as("max"))
 					.filter("max>" + parseSQL.getComparisonNumber);
 			
 			case AggregateFunction.MIN =>
-				res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail: _*)
+        res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail.asInstanceOf[Seq[String]]: _*)
 					.agg(min(aggColumn).as("min"))
 					.filter("min>" + parseSQL.getComparisonNumber);
 			

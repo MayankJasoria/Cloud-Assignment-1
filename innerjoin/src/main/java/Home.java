@@ -1,5 +1,7 @@
 import jobUtils.GroupBy;
-import scala.SparkGroupBy;
+import jobUtils.InnerJoin;
+import scala_queries.SparkGroupBy;
+import scala_queries.SparkInnerJoin;
 import sqlUtils.ParseSQL;
 
 import java.io.IOException;
@@ -11,7 +13,7 @@ public class Home {
             InterruptedException, IOException, ClassNotFoundException {
         //TODO: Get SQL query from somewhere
         String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
-        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>15";
+        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
 
         // parse query to extract attributes
         ParseSQL parseSQL = new ParseSQL(query1);
@@ -26,9 +28,10 @@ public class Home {
             case GROUP_BY:
                 GroupBy.execute(parseSQL);
                 SparkGroupBy.execute(parseSQL);
+                break;
             case INNER_JOIN:
-                // TODO: initiate inner join requirements here.
-                System.exit(0);
+                InnerJoin.execute(parseSQL);
+                SparkInnerJoin.execute(parseSQL);
         }
     }
 

@@ -16,51 +16,41 @@ import sqlUtils.Tables;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class InnerJoin {
 
-    private static ParseSQL parseSQL;
-
-    public static void globalMapper(Tables table, int tableKeyIndex, Text value, Mapper.Context context)
+    private static void globalMapper(Tables table, int tableKeyIndex, Text value,
+                                     Mapper<Object, Text, Text, Text>.Context context)
             throws IOException, InterruptedException {
         String record = value.toString();
         String[] parts = record.split(",");
         String jk = parts[tableKeyIndex];
-        String val = table.name() + "#";
+        StringBuilder val = new StringBuilder(table.name() + "#");
         /*
          FIXME: To fix extra ',' in output
           */
         for (int i = 0; i < parts.length; i++) {
             if (i == tableKeyIndex) continue;
-            val = val + "," + parts[i];
+            val.append(",").append(parts[i]);
         }
-        context.write(new Text(jk), new Text(val));
+        context.write(new Text(jk), new Text(val.toString()));
     }
 
-    public static void main(String[] args)
-            throws IOException, InterruptedException, ClassNotFoundException, SQLException {
+    public static void execute(ParseSQL parsedSQL) throws IOException,
+            InterruptedException, ClassNotFoundException, SQLException {
 
-        parseSQL = null;
-
-        /* While sqlUtils is under construction, take table names as params 3 and 4 */
-        firstMapper.table = getTable(args[3]);
-        secondMapper.table = getTable(args[4]);
-        ReduceJoinReducer.table1 = firstMapper.table;
-        ReduceJoinReducer.table2 = secondMapper.table;
         /* get key index for both tables */
-        String jk = DBManager.getJoinKey(firstMapper.table, secondMapper.table);
+        String jk = DBManager.getJoinKey(parsedSQL.getTable1(), parsedSQL.getTable2());
         if (jk == null) {
             System.out.println("No join key exists!");
             System.exit(0);
         }
-        firstMapper.tableKeyIndex = DBManager.getColumnIndex(firstMapper.table, jk);
-        secondMapper.tableKeyIndex = DBManager.getColumnIndex(secondMapper.table, jk);
 
         /* #########################################################################*/
         Configuration conf = new Configuration();
-        conf.set("table1", args[3]);
-        conf.set("table2", args[4]);
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.setEnum("table1", parsedSQL.getTable1()); //args[3]);
+        conf.setEnum("table2", parsedSQL.getTable2());
         conf.set("jk", jk);
         Job job = Job.getInstance(conf, "InnerJoin");
         job.setJarByClass(InnerJoin.class);
@@ -68,52 +58,25 @@ public class InnerJoin {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class, firstMapper.class);
-        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class, secondMapper.class);
-        Path outputPath = new Path(args[2]);
-
+        MultipleInputs.addInputPath(job, new Path("/" + DBManager.getFileName(parsedSQL.getTable1())), TextInputFormat.class, firstMapper.class);
+        MultipleInputs.addInputPath(job, new Path("/" + DBManager.getFileName(parsedSQL.getTable2())), TextInputFormat.class, secondMapper.class);
+        Path outputPath = new Path("/output");
 
         FileOutputFormat.setOutputPath(job, outputPath);
-
-
         outputPath.getFileSystem(conf).delete(outputPath, true);
         job.waitForCompletion(true);
     }
 
-    /**
-     * Temporary helper function. This won't be necessary after our main function is
-     * refactored into execute().
-     */
-
-    public static Tables getTable(String table) throws SQLException {
-        if (table.equalsIgnoreCase(Tables.USERS.name())) {
-            return Tables.USERS;
-        } else if (table.equalsIgnoreCase(Tables.ZIPCODES.name())) {
-            return Tables.ZIPCODES;
-        } else if (table.equalsIgnoreCase(Tables.MOVIES.name())) {
-            return Tables.MOVIES;
-        } else if (table.equalsIgnoreCase(Tables.RATING.name())) {
-            return Tables.RATING;
-        } else {
-            throw new SQLException("Table " + table + " does not exist");
-        }
-
-    }
-
-    public static class firstMapper extends Mapper<Object, Text, Text, Text>
+    private static class firstMapper extends Mapper<Object, Text, Text, Text>
     {
-        public static Tables table;
-        public static int tableKeyIndex;
+        private static Tables table;
+        private static int tableKeyIndex;
 
         @Override
         protected void setup(Context context) {
-            try {
-                table = getTable(context.getConfiguration().get("table1"));
-                String jk = context.getConfiguration().get("jk");
-                tableKeyIndex = DBManager.getColumnIndex(table, jk);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            table = context.getConfiguration().getEnum("table1", Tables.NONE);
+            String jk = context.getConfiguration().get("jk");
+            tableKeyIndex = DBManager.getColumnIndex(table, jk);
         }
 
         @Override
@@ -123,49 +86,41 @@ public class InnerJoin {
         }
     }
 
-    public static class secondMapper extends Mapper<Object, Text, Text, Text>
+    private static class secondMapper extends Mapper<Object, Text, Text, Text>
     {
-        public static Tables table;
-        public static int tableKeyIndex;
+        private static Tables table;
+        private static int tableKeyIndex;
 
         @Override
         protected void setup(Context context) {
-            try {
-                table = getTable(context.getConfiguration().get("table2"));
-                String jk = context.getConfiguration().get("jk");
-                tableKeyIndex = DBManager.getColumnIndex(table, jk);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            table = context.getConfiguration().getEnum("table2", Tables.NONE);
+            String jk = context.getConfiguration().get("jk");
+            tableKeyIndex = DBManager.getColumnIndex(table, jk);
         }
 
+        @Override
         public void map(Object key, Text value, Context context)
-                throws IOException, InterruptedException
-        {
+                throws IOException, InterruptedException {
             globalMapper(table, tableKeyIndex, value, context);
         }
     }
 
-    public static class ReduceJoinReducer extends Reducer <Text, Text, Text, Text>
+    private static class ReduceJoinReducer extends Reducer<Text, Text, Text, Text>
     {
-        public static Tables table1;
-        public static Tables table2;
+        private static Tables table1;
+        private static Tables table2;
 
         @Override
         protected void setup(Reducer.Context context) {
-            try {
-                table1 = getTable(context.getConfiguration().get("table1"));
-                table2 = getTable(context.getConfiguration().get("table2"));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            table1 = context.getConfiguration().getEnum("table1", Tables.NONE);
+            table2 = context.getConfiguration().getEnum("table2", Tables.NONE);
         }
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
-            List table1List = new ArrayList<>();
-            List table2List = new ArrayList<>();
+            ArrayList<String> table1List = new ArrayList<>();
+            ArrayList<String> table2List = new ArrayList<>();
             //String name = "";
             //double total = 0.0;
             //int count = 0;
@@ -178,9 +133,9 @@ public class InnerJoin {
                 }
             }
 
-            for (Object u : table1List) {
-                for (Object z : table2List) {
-                    context.write(key, new Text(u.toString()+','+z.toString()));
+            for (String u : table1List) {
+                for (String z : table2List) {
+                    context.write(key, new Text(u + ',' + z));
                 }
 
             }
