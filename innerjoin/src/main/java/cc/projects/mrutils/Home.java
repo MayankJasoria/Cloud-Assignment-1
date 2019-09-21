@@ -1,8 +1,10 @@
-import jobUtils.GroupBy;
-import jobUtils.InnerJoin;
-import scala_queries.SparkGroupBy;
-import scala_queries.SparkInnerJoin;
-import sqlUtils.ParseSQL;
+package cc.projects.mrutils;
+
+import cc.projects.mrutils.jobUtils.GroupBy;
+import cc.projects.mrutils.jobUtils.InnerJoin;
+import cc.projects.mrutils.scala_queries.SparkGroupBy;
+import cc.projects.mrutils.scala_queries.SparkInnerJoin;
+import cc.projects.mrutils.sqlUtils.ParseSQL;
 
 import java.io.IOException;
 import java.sql.SQLException;

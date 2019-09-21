@@ -1,4 +1,4 @@
-package sqlUtils;
+package cc.projects.mrutils.sqlUtils;
 
 public enum Tables {
     NONE(0), USERS(1), ZIPCODES(2), MOVIES(3), RATING(4);

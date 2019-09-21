@@ -1,6 +1,6 @@
-package contracts;
+package cc.projects.mrutils.contracts;
 
-import sqlUtils.Tables;
+import cc.projects.mrutils.sqlUtils.Tables;
 
 /**
  * Class that handles returning of the index of a required column from a given table

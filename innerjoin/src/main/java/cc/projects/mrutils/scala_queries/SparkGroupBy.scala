@@ -1,9 +1,9 @@
-package scala_queries
+package cc.projects.mrutils.scala_queries
 
-import contracts.DBManager
+import cc.projects.mrutils.contracts.DBManager
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import sqlUtils.{AggregateFunction, ParseSQL}
+import cc.projects.mrutils.sqlUtils.{AggregateFunction, ParseSQL}
 
 import scala.annotation.switch
 import scala.collection.JavaConverters._

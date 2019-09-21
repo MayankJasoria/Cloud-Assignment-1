@@ -1,25 +1,24 @@
-package contracts;
+package cc.projects.mrutils.contracts;
 
 import java.util.HashMap;
 
 /**
  * Class to manage mapping of columns to their indices in the csv file.
- * Also returns the actual name of the csv file for the table "Users"
+ * Also returns the actual name of the csv file for the table "Rating"
  */
-class UsersContract implements Cloneable {
+public class RatingsContract {
 
     private static final HashMap<String, Integer> map;
 
     static {
         map = new HashMap<>();
         map.put("userid", 0);
-        map.put("age", 1);
-        map.put("gender", 2);
-        map.put("occupation", 3);
-        map.put("zipcode", 4);
+        map.put("movieid", 1);
+        map.put("rating", 2);
+        map.put("timestamp", 3);
     }
 
-    private UsersContract() {
+    private RatingsContract() {
         // ensuring that a constructor for this class cannot be created
     }
 
@@ -27,11 +26,11 @@ class UsersContract implements Cloneable {
         if (map.containsKey(column)) {
             return map.get(column);
         }
-        throw new IllegalArgumentException("Given column does not exist in Users table");
+        throw new IllegalArgumentException("Given column does not exist in Rating table");
     }
 
     public static String getFileName() {
-        return "users.csv";
+        return "rating.csv";
     }
 
     @Override

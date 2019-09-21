@@ -1,4 +1,4 @@
-package sqlUtils;
+package cc.projects.mrutils.sqlUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

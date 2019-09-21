@@ -1,8 +1,8 @@
-package scala_queries
+package cc.projects.mrutils.scala_queries
 
-import contracts.DBManager
+import cc.projects.mrutils.contracts.DBManager
 import org.apache.spark.sql.SparkSession
-import sqlUtils.ParseSQL
+import cc.projects.mrutils.sqlUtils.ParseSQL
 
 
 object SparkInnerJoin {

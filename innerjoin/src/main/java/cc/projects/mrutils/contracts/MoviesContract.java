@@ -1,4 +1,4 @@
-package contracts;
+package cc.projects.mrutils.contracts;
 
 import java.util.HashMap;
 
