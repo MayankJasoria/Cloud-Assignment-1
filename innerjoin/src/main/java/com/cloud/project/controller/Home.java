@@ -1,38 +1,56 @@
-import jobUtils.GroupBy;
-import jobUtils.InnerJoin;
-import scala_queries.SparkGroupBy;
-import scala_queries.SparkInnerJoin;
-import sqlUtils.ParseSQL;
+package com.cloud.project.controller;
 
+import com.cloud.project.jobUtils.GroupBy;
+import com.cloud.project.models.GroupByOutput;
+import com.cloud.project.models.InputModel;
+import com.cloud.project.sqlUtils.ParseSQL;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.sql.SQLException;
 
+@Path("/")
 public class Home {
 
-    public static void main(String[] args) throws SQLException,
+    @GET
+    @Path("test")
+    public String helloWorld() {
+        return "Hello World!";
+    }
+
+    @POST
+    @Path("query")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public GroupByOutput resultOfQuery(InputModel inputModel) throws SQLException,
             InterruptedException, IOException, ClassNotFoundException {
         //TODO: Get SQL query from somewhere
-        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
-        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+//        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
+//        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
 
         // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(query1);
+        ParseSQL parseSQL = new ParseSQL(inputModel.getQuery());
         try {
             debugging(parseSQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        GroupByOutput outputModel = null;
+
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
-                GroupBy.execute(parseSQL);
-                SparkGroupBy.execute(parseSQL);
-                break;
+                outputModel = GroupBy.execute(parseSQL);
+//                SparkGroupBy.execute(parseSQL, outputModel);
+//                break;
             case INNER_JOIN:
-                InnerJoin.execute(parseSQL);
-                SparkInnerJoin.execute(parseSQL);
+//                outputModel = InnerJoin.execute(parseSQL);
+//                SparkInnerJoin.execute(parseSQL, outputModel);
         }
+
+        return outputModel;
     }
 
     /**

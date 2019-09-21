@@ -1,8 +1,8 @@
-package scala_queries
+package com.cloud.project.scala_queries
 
-import contracts.DBManager
+import com.cloud.project.contracts.DBManager
+import com.cloud.project.sqlUtils.ParseSQL
 import org.apache.spark.sql.SparkSession
-import sqlUtils.ParseSQL
 
 
 object SparkInnerJoin {

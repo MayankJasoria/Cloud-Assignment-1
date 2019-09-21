@@ -1,4 +1,4 @@
-package contracts;
+package com.cloud.project.contracts;
 
 import java.util.HashMap;
 

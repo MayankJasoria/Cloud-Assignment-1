@@ -1,6 +1,10 @@
-package jobUtils;
+package com.cloud.project.jobUtils;
 
-import contracts.DBManager;
+import com.cloud.project.contracts.DBManager;
+import com.cloud.project.models.GroupByOutput;
+import com.cloud.project.sqlUtils.AggregateFunction;
+import com.cloud.project.sqlUtils.ParseSQL;
+import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -10,9 +14,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import sqlUtils.AggregateFunction;
-import sqlUtils.ParseSQL;
-import sqlUtils.Tables;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,8 +22,11 @@ import java.util.Iterator;
 
 public class GroupBy {
 
-    public static void execute(ParseSQL parsedSQL) throws IOException,
+    public static GroupByOutput execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
+
+        GroupByOutput groupByOutput = new GroupByOutput();
+
         Configuration conf = new Configuration();
 
         // like defined in hdfs-site.xml (required for reading file from hdfs)
@@ -64,8 +68,97 @@ public class GroupBy {
         job.waitForCompletion(true);
         long execTime = job.getFinishTime() - job.getStartTime();
 
-        // TODO: something about execution time
-        // TODO: write results to JSON output
+        // writing time of execution as output
+        groupByOutput.setHadoopExecutionTime(execTime + " milliseconds");
+
+        // creating scheme for mapper
+        StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
+
+        // mapper input value
+        for (int i = 0; i < parsedSQL.getColumns().size() - 1; i++) {
+            mapperScheme.append(parsedSQL.getColumns().get(i));
+        }
+
+        // end input, start output
+        mapperScheme.append(")> ---> <(");
+
+        // mapper output key
+        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
+            mapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
+        }
+        mapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2));
+        mapperScheme.append("), ");
+
+        String aggCol = null;
+
+        // mapper output value
+        switch (parsedSQL.getAggregateFunction()) {
+            case COUNT:
+                mapperScheme.append("1");
+                break;
+            case SUM:
+            case MAX:
+            case MIN:
+                aggCol = parsedSQL.getColumns()
+                        .get(parsedSQL.getColumns().size() - 1)
+                        .split("\\(")[1]
+                        .split("\\)")[0];
+                mapperScheme.append(aggCol);
+            default:
+                // not likely to be encountered
+                throw new IllegalArgumentException("The aggregate function is not valid");
+        }
+
+        // close mapper output
+        mapperScheme.append(">");
+
+        // write mapper scheme
+        groupByOutput.setGroupByMapperPlan(mapperScheme.toString());
+
+        // creating reducer scheme
+        StringBuilder reducerScheme = new StringBuilder("<");
+
+        // reducer input key
+        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
+            reducerScheme.append(parsedSQL.getColumns().get(i)).append(", ");
+        }
+
+        // reducer input key ends, input value starts
+        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2)).append("), {");
+
+        // reducer input value
+        switch (parsedSQL.getAggregateFunction()) {
+            case COUNT:
+                reducerScheme.append("1, 1, 1, ... 1");
+                break;
+            case SUM:
+            case MIN:
+            case MAX:
+                reducerScheme.append(aggCol + "(1), " + aggCol + "(2), ... " + aggCol + "(n)");
+        }
+
+        // reducer input ends, output starts
+        reducerScheme.append("}> ---> ");
+
+        // reducer output key
+        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
+            reducerScheme.append(parsedSQL.getColumns().get(i)).append(", ");
+        }
+
+        // reducer output key ends
+        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2))
+                .append("), ");
+
+        // reducer output value
+        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 1)).append(">");
+
+        // setting reducer plan
+        groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
+
+        // setting hadoop output URL
+        groupByOutput.setHadoopOutputUrl("http://webhdfs/v1/output/part-r-00000?op=OPEN  (Note: WebDFS should be enabled for this to work)");
+
+        return groupByOutput;
     }
 
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {

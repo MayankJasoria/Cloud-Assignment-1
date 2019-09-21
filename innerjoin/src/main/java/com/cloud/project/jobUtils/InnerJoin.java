@@ -1,6 +1,8 @@
-package jobUtils;
+package com.cloud.project.jobUtils;
 
-import contracts.DBManager;
+import com.cloud.project.contracts.DBManager;
+import com.cloud.project.sqlUtils.ParseSQL;
+import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -10,8 +12,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import sqlUtils.ParseSQL;
-import sqlUtils.Tables;
 
 import java.io.IOException;
 import java.sql.SQLException;

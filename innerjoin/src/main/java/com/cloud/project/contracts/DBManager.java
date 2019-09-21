@@ -1,6 +1,6 @@
-package contracts;
+package com.cloud.project.contracts;
 
-import sqlUtils.Tables;
+import com.cloud.project.sqlUtils.Tables;
 
 /**
  * Class that handles returning of the index of a required column from a given table

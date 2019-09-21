@@ -1,4 +1,4 @@
-package sqlUtils;
+package com.cloud.project.sqlUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

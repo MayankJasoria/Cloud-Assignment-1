@@ -1,16 +1,17 @@
-package scala_queries
+package com.cloud.project.scala_queries
 
-import contracts.DBManager
+import com.cloud.project.contracts.DBManager
+import com.cloud.project.models.GroupByOutput
+import com.cloud.project.sqlUtils.{AggregateFunction, ParseSQL}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
-import sqlUtils.{AggregateFunction, ParseSQL}
 
 import scala.annotation.switch
 import scala.collection.JavaConverters._
 
 object SparkGroupBy {
-
-	def execute(parseSQL: ParseSQL): Unit = {
+	
+	def execute(parseSQL: ParseSQL, groupByOutput: GroupByOutput): Unit = {
 		
 		// convert columns to required _c# format, where # denotes a number
 		for (i <- 0 until parseSQL.getOperationColumns.size()) {
