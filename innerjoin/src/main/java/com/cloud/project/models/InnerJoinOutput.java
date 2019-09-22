@@ -1,6 +1,6 @@
 package com.cloud.project.models;
 
-public class InnerJoinOutput implements OutputModel {
+public class InnerJoinOutput {
 
     // hadoop parameters
     private String hadoopExecutionTime;

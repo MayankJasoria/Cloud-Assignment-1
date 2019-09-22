@@ -2,6 +2,7 @@ package com.cloud.project.jobUtils;
 
 import com.cloud.project.contracts.DBManager;
 import com.cloud.project.models.GroupByOutput;
+import com.cloud.project.models.OutputModel;
 import com.cloud.project.sqlUtils.AggregateFunction;
 import com.cloud.project.sqlUtils.ParseSQL;
 import com.cloud.project.sqlUtils.Tables;
@@ -33,10 +34,10 @@ public class GroupBy {
      * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
      * @throws SQLException           if the SQL query could not be parsed successfully
      */
-    public static GroupByOutput execute(ParseSQL parsedSQL) throws IOException,
+    public static OutputModel execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
 
-        GroupByOutput groupByOutput = new GroupByOutput();
+        OutputModel groupByOutput = new OutputModel();
 
         Configuration conf = new Configuration();
 

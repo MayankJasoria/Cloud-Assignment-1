@@ -1,7 +1,7 @@
 package com.cloud.project.jobUtils;
 
 import com.cloud.project.contracts.DBManager;
-import com.cloud.project.models.InnerJoinOutput;
+import com.cloud.project.models.OutputModel;
 import com.cloud.project.sqlUtils.ParseSQL;
 import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
@@ -62,10 +62,10 @@ public class InnerJoin {
         context.write(new Text(jk), new Text(val.toString()));
     }
 
-    public static InnerJoinOutput execute(ParseSQL parsedSQL) throws IOException,
+    public static OutputModel execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
 
-        InnerJoinOutput innerJoinOutput = new InnerJoinOutput();
+        OutputModel innerJoinOutput = new OutputModel();
 
         /* get key index for both tables */
         String jk = DBManager.getJoinKey(parsedSQL.getTable1(), parsedSQL.getTable2());
@@ -117,7 +117,7 @@ public class InnerJoin {
         }
 
         // end input, start output
-        firstMapperScheme.append(")> ---> <" + jk + ", (");
+        firstMapperScheme.append(")> ---> <").append(jk).append(", (");
 
         // mapper output key
         int i = 0;
@@ -149,7 +149,7 @@ public class InnerJoin {
         }
 
         // end input, start output
-        secondMapperScheme.append(")> ---> <" + jk + ", (");
+        secondMapperScheme.append(")> ---> <").append(jk).append(", (");
 
         // mapper output key
         i = 0;

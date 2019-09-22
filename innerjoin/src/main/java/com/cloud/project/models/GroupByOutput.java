@@ -1,6 +1,6 @@
 package com.cloud.project.models;
 
-public class GroupByOutput implements OutputModel {
+public class GroupByOutput {
 
     // hadoop parameters
     private String hadoopExecutionTime;
