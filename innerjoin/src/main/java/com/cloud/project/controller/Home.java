@@ -1,6 +1,5 @@
 package com.cloud.project.controller;
 
-import com.cloud.project.contracts.DBManager;
 import com.cloud.project.jobUtils.GroupBy;
 import com.cloud.project.jobUtils.InnerJoin;
 import com.cloud.project.models.InputModel;
@@ -38,9 +37,9 @@ public class Home {
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
-//                outputModel = GroupBy.execute(parseSQL);
+                outputModel = GroupBy.execute(parseSQL);
 //                SparkGroupBy.execute(parseSQL, outputModel);
-//                break;
+                break;
             case INNER_JOIN:
                 outputModel = InnerJoin.execute(parseSQL);
 //                SparkInnerJoin.execute(parseSQL, outputModel);
@@ -76,7 +75,7 @@ public class Home {
         System.out.println("AggregateFunction: " + parseSQL.getAggregateFunction().name());
         System.out.println();
         System.out.println("Where Clause: " + parseSQL.getWhereTable().name() + "." + parseSQL.getWhereColumn() + "=" + parseSQL.getWhereValue());
-        System.out.println(DBManager.getColumnIndex(parseSQL.getWhereTable(), parseSQL.getWhereColumn()));
+//        System.out.println(DBManager.getColumnIndex(parseSQL.getWhereTable(), parseSQL.getWhereColumn()));
         System.out.println("Having Clause: " + parseSQL.getColumns().get(parseSQL.getColumns().size() - 1)
                 + ">" + parseSQL.getComparisonNumber());
     }
@@ -105,9 +104,9 @@ public class Home {
             case GROUP_BY:
                 outputModel = GroupBy.execute(parseSQL);
 //                SparkGroupBy.execute(parseSQL, outputModel);
-//                break;
+                break;
             case INNER_JOIN:
-//                outputModel = InnerJoin.execute(parseSQL);
+                outputModel = InnerJoin.execute(parseSQL);
 //                SparkInnerJoin.execute(parseSQL, outputModel);
         }
 
