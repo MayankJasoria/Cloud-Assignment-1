@@ -75,12 +75,12 @@ public class GroupBy {
         StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
 
         // mapper input value
-        for (int i = 0; i < parsedSQL.getColumns().size() - 1; i++) {
-            mapperScheme.append(parsedSQL.getColumns().get(i));
+        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
+            mapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
         }
 
         // end input, start output
-        mapperScheme.append(")> ---> <(");
+        mapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2)).append(")> ---> <(");
 
         // mapper output key
         for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
@@ -116,7 +116,7 @@ public class GroupBy {
         groupByOutput.setGroupByMapperPlan(mapperScheme.toString());
 
         // creating reducer scheme
-        StringBuilder reducerScheme = new StringBuilder("<");
+        StringBuilder reducerScheme = new StringBuilder("<(");
 
         // reducer input key
         for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
@@ -138,7 +138,7 @@ public class GroupBy {
         }
 
         // reducer input ends, output starts
-        reducerScheme.append("}> ---> ");
+        reducerScheme.append("}> ---> <(");
 
         // reducer output key
         for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
@@ -156,7 +156,7 @@ public class GroupBy {
         groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
 
         // setting hadoop output URL
-        groupByOutput.setHadoopOutputUrl("http://webhdfs/v1/output/part-r-00000?op=OPEN  (Note: WebDFS should be enabled for this to work)");
+        groupByOutput.setHadoopOutputUrl("http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN  (Note: WebHDFS should be enabled for this to work)");
 
         return groupByOutput;
     }
