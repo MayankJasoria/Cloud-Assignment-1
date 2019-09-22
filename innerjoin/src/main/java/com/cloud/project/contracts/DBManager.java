@@ -20,7 +20,9 @@ public class DBManager implements Cloneable {
      * @return index of the column
      * @throws IllegalArgumentException when either the table or the column are invalid
      */
-    public static int getColumnIndex(Tables table, String column) throws IllegalArgumentException {
+    public static int getColumnIndex(Tables table, String column)
+            throws IllegalArgumentException {
+        System.out.println(">>>>>>" + table.name() + "." + column);
         switch (table) {
             case USERS:
                 return UsersContract.getColumnIndex(column);

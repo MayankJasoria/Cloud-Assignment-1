@@ -29,12 +29,13 @@ public class InnerJoin {
         String[] parts = record.split(",");
 
         /* remove if does not match WHERE clause */
-        String eqTab = context.getConfiguration().get("eqTab");
-        if (eqTab.equalsIgnoreCase(table.name())) {
+        Tables eqTab = context.getConfiguration().getEnum("eqTab", Tables.NONE);
+        if (eqTab == table) {
             String eqCol = context.getConfiguration().get("eqCol");
             int ind = DBManager.getColumnIndex(table, eqCol);
+            //(eqTab.name()+"."+eqCol);
             String val = context.getConfiguration().get("eqVal");
-            if (!val.equalsIgnoreCase(parts[ind])) return;
+            if (!val.equalsIgnoreCase(parts[ind].trim())) return;
         }
         String jk = parts[tableKeyIndex];
         StringBuilder val = new StringBuilder(table.name() + "#");
@@ -50,8 +51,10 @@ public class InnerJoin {
         }
         for (i = 1; i < parts.length; i++) {
             if (i == tableKeyIndex) continue;
-            if (flag == 1)
+            if (flag == 1) {
                 val.append(parts[i]);
+                flag = 0;
+            }
             else {
                 val.append(",").append(parts[i]);
             }
@@ -78,10 +81,12 @@ public class InnerJoin {
         conf.setEnum("table2", parsedSQL.getTable2());
         Tables table1 = parsedSQL.getTable1();
         Tables table2 = parsedSQL.getTable2();
-        String tab_col = parsedSQL.getWhereColumn();
-        String sp[] = tab_col.split(".");
-        conf.set("eqTab", sp[0]);
-        conf.set("eqCol", sp[1]);
+//        String tab_col = parsedSQL.getWhereColumn();
+//        System.out.println("#### TABLE.COLUMN #### : " + tab_col.trim());
+//        String[] sp = tab_col.trim().split(".");
+//        System.out.println("### Size: " + sp.length);
+        conf.setEnum("eqTab", parsedSQL.getWhereTable());
+        conf.set("eqCol", parsedSQL.getWhereColumn());
         conf.set("eqVal", parsedSQL.getWhereValue());
         conf.set("jk", jk);
         Job job = Job.getInstance(conf, "InnerJoin");
@@ -109,29 +114,70 @@ public class InnerJoin {
         StringBuilder firstMapperScheme = new StringBuilder("<serial_number, (");
 
         // mapper input value
-        firstMapperScheme.append(DBManager.getColumnFromIndex((table1, 0));
+        firstMapperScheme.append(DBManager.getColumnFromIndex(table1, 0));
         for (int i = 1; i < DBManager.getTableSize(table1) - 1; i++) {
             firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
         }
 
         // end input, start output
-        firstMapperScheme.append(")> ---> <(");
+        firstMapperScheme.append(")> ---> <" + jk + ", (");
 
         // mapper output key
-        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
-            firstMapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
+        int i = 0;
+        int flag = 0;
+        if (DBManager.getColumnIndex(table1, jk) == i) {
+            flag = 1;
+        } else {
+            firstMapperScheme.append(DBManager.getColumnFromIndex(table1, 0));
         }
-        firstMapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2));
+        for (i = 1; i < DBManager.getTableSize(table1) - 1; i++) {
+            if (flag == 1) {
+                firstMapperScheme.append(DBManager.getColumnFromIndex(table1, i));
+                flag = 0;
+            } else {
+                firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
+            }
+        }
         firstMapperScheme.append("), ");
+
+
+        StringBuilder secondMapperScheme = new StringBuilder("<serial_number, (");
+
+        secondMapperScheme.append(DBManager.getColumnFromIndex(table2, 0));
+        for (i = 1; i < DBManager.getTableSize(table2) - 1; i++) {
+            secondMapperScheme.append(",").append(DBManager.getColumnFromIndex(table2, i));
+        }
+
+        // end input, start output
+        secondMapperScheme.append(")> ---> <" + jk + ", (");
+
+        // mapper output key
+        i = 0;
+        flag = 0;
+        if (DBManager.getColumnIndex(table2, jk) == i) {
+            flag = 1;
+        } else {
+            secondMapperScheme.append(DBManager.getColumnFromIndex(table2, 0));
+        }
+        for (i = 1; i < DBManager.getTableSize(table2) - 1; i++) {
+            if (flag == 1) {
+                secondMapperScheme.append(DBManager.getColumnFromIndex(table2, i));
+                flag = 0;
+            } else {
+                secondMapperScheme.append(",").append(DBManager.getColumnFromIndex(table2, i));
+            }
+        }
+        secondMapperScheme.append("), ");
+
 
         /* Create reducer scheme */
 
         /* Set Inner Join output */
-        innerJoinOutput.setFirstMapperPlan();
-        innerJoinOutput.setSecondMapperPlan();
+        innerJoinOutput.setFirstMapperPlan(firstMapperScheme.toString());
+        innerJoinOutput.setSecondMapperPlan(secondMapperScheme.toString());
         innerJoinOutput.setHadoopExecutionTime(execTime + " milliseconds");
         innerJoinOutput.setHadoopOutputUrl("http://localhost:9000/output/part-r-00000?op=OPEN  (Note: WebDFS should be enabled for this to work)");
-
+        return innerJoinOutput;
     }
 
     private static class firstMapper extends Mapper<Object, Text, Text, Text>

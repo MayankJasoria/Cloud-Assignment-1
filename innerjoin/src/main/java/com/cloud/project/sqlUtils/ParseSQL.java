@@ -27,6 +27,7 @@ public class ParseSQL {
 
     private int comparisonNumber;
 
+    private Tables whereTable;
     private String whereColumn;
     private String whereValue;
 
@@ -38,6 +39,7 @@ public class ParseSQL {
         operationColumns = new ArrayList<>();
         aggregateFunction = AggregateFunction.NONE;
         comparisonNumber = -1;
+        whereTable = Tables.NONE;
         whereColumn = "";
         whereValue = "";
         parsed = false;
@@ -112,10 +114,23 @@ public class ParseSQL {
             }
 
             // get column on which where clause is run
-            whereColumn = tokenizer.nextToken("=");
+            whereColumn = tokenizer.nextToken(".").trim();
+            if (whereColumn.equalsIgnoreCase(Tables.USERS.name())) {
+                whereTable = Tables.USERS;
+            } else if (whereColumn.equalsIgnoreCase(Tables.ZIPCODES.name())) {
+                whereTable = Tables.ZIPCODES;
+            } else if (whereColumn.equalsIgnoreCase(Tables.MOVIES.name())) {
+                whereTable = Tables.MOVIES;
+            } else if (whereColumn.equalsIgnoreCase(Tables.RATING.name())) {
+                whereTable = Tables.RATING;
+            } else {
+                throw new SQLException("table for column of where clause does not exist");
+            }
+
+            whereColumn = tokenizer.nextToken("=").substring(1).trim();
 
             // get value for where clause
-            whereValue = tokenizer.nextToken();
+            whereValue = tokenizer.nextToken().trim();
         } else {
             table2 = null;
             whereColumn = null;
@@ -235,8 +250,15 @@ public class ParseSQL {
         return comparisonNumber;
     }
 
+    public Tables getWhereTable() throws SQLException {
+        if (!parsed) {
+            parseQuery();
+        }
+        return whereTable;
+    }
+
     /**
-     * Returns the column name (table.column) to be tested for in the where clause of the given SQL query.
+     * Returns the column name to be tested for in the where clause of the given SQL query.
      *
      * @return column name to be tested for in the where clause.
      * @throws SQLException in case SQL query could not be parsed successfully

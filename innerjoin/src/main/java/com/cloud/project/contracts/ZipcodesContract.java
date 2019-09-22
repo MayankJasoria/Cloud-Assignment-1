@@ -31,17 +31,17 @@ class ZipcodesContract implements Cloneable {
     }
 
     static int getColumnIndex(String column) throws IllegalArgumentException {
-        if (map.containsKey(column)) {
+        if (map.containsKey(column.trim())) {
             return map.get(column);
         }
-        throw new IllegalArgumentException("Given column does not exist in Users table");
+        throw new IllegalArgumentException("Given column does not exist in Zipcodes table");
     }
 
     static String getColumnFromIndex(int index) throws IllegalArgumentException {
         if (!(index > indToCol.size() - 1)) {
             return indToCol.get(index);
         }
-        throw new IllegalArgumentException("Given column does not exist in Movies table");
+        throw new IllegalArgumentException("Given column does not exist in Zipcodes table");
     }
 
     static int getNumColumns() {

@@ -1,8 +1,7 @@
 package com.cloud.project.controller;
 
-import com.cloud.project.jobUtils.GroupBy;
+import com.cloud.project.contracts.DBManager;
 import com.cloud.project.jobUtils.InnerJoin;
-import com.cloud.project.models.GroupByOutput;
 import com.cloud.project.models.InnerJoinOutput;
 import com.cloud.project.models.InputModel;
 import com.cloud.project.sqlUtils.ParseSQL;
@@ -21,18 +20,12 @@ public class Home {
         return "Hello World!";
     }
 
-    @POST
-    @Path("query")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public GroupByOutput resultOfQuery(InputModel inputModel) throws SQLException,
-            InterruptedException, IOException, ClassNotFoundException {
-        //TODO: Get SQL query from somewhere
-//        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
-//        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+    public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
+        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = NY";
+        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
 
         // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(inputModel.getQuery());
+        ParseSQL parseSQL = new ParseSQL(query1);
         try {
             debugging(parseSQL);
         } catch (SQLException e) {
@@ -52,35 +45,9 @@ public class Home {
 //                SparkInnerJoin.execute(parseSQL, outputModel);
         }
 
-        return outputModel;
-    }
-
-    public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
-        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
-
-        // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(query2);
-        try {
-            debugging(parseSQL);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        GroupByOutput outputModel = null;
-
-        // call required method
-        switch (parseSQL.getQueryType()) {
-            case GROUP_BY:
-                outputModel = GroupBy.execute(parseSQL);
-//                SparkGroupBy.execute(parseSQL, outputModel);
-//                break;
-            case INNER_JOIN:
-//                outputModel = InnerJoin.execute(parseSQL);
-//                SparkInnerJoin.execute(parseSQL, outputModel);
-        }
-
-        System.out.println("MapperExecutionPlan: " + outputModel.getGroupByMapperPlan());
-        System.out.println("ReducerExecutionPlan: " + outputModel.getGroupByReducerPlan());
+        System.out.println("FirstMapperExecutionPlan: " + outputModel.getFirstMapperPlan());
+        System.out.println("SecondMapperExecutionPlan: " + outputModel.getSecondMapperPlan());
+        System.out.println("ReducerExecutionPlan: " + outputModel.getInnerJoinReducerPlan());
         System.out.println("Execution time: " + outputModel.getHadoopExecutionTime());
         System.out.println("Output URL: " + outputModel.getHadoopOutputUrl());
 
@@ -108,8 +75,43 @@ public class Home {
         }
         System.out.println("AggregateFunction: " + parseSQL.getAggregateFunction().name());
         System.out.println();
-        System.out.println("Where Clause: " + parseSQL.getWhereColumn() + "=" + parseSQL.getWhereValue());
+        System.out.println("Where Clause: " + parseSQL.getWhereTable().name() + "." + parseSQL.getWhereColumn() + "=" + parseSQL.getWhereValue());
+        System.out.println(DBManager.getColumnIndex(parseSQL.getWhereTable(), parseSQL.getWhereColumn()));
         System.out.println("Having Clause: " + parseSQL.getColumns().get(parseSQL.getColumns().size() - 1)
                 + ">" + parseSQL.getComparisonNumber());
+    }
+
+    @POST
+    @Path("query")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public InnerJoinOutput resultOfQuery(InputModel inputModel) throws SQLException,
+            InterruptedException, IOException, ClassNotFoundException {
+        //TODO: Get SQL query from somewhere
+//        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
+//        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+
+        // parse query to extract attributes
+        ParseSQL parseSQL = new ParseSQL(inputModel.getQuery());
+        try {
+            debugging(parseSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        InnerJoinOutput outputModel = null;
+
+        // call required method
+        switch (parseSQL.getQueryType()) {
+            case GROUP_BY:
+//                outputModel = GroupBy.execute(parseSQL);
+//                SparkGroupBy.execute(parseSQL, outputModel);
+//                break;
+            case INNER_JOIN:
+                outputModel = InnerJoin.execute(parseSQL);
+//                SparkInnerJoin.execute(parseSQL, outputModel);
+        }
+
+        return outputModel;
     }
 }
