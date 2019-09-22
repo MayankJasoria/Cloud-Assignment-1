@@ -47,6 +47,7 @@ public class ParseSQL {
 
     /**
      * Method which parses the given SQL Query. Prerequisite to all getter calls of this class
+     *
      * @throws SQLException in case the SQL query could not be parsed successfully
      */
     private void parseQuery() throws SQLException {
@@ -178,9 +179,10 @@ public class ParseSQL {
 
     /**
      * Returns the list of columns which have been selected in SQL query
+     *
      * @return {@link ArrayList<String>} either *  for Inner Join, or columns which
-     *          have been selected in SQL query (last value is be the aggregate
-     *          function used in Group By query)
+     * have been selected in SQL query (last value is be the aggregate
+     * function used in Group By query)
      * @throws SQLException in case the SQL query could not be parsed successfully
      */
     public ArrayList<String> getColumns() throws SQLException {
@@ -192,6 +194,7 @@ public class ParseSQL {
 
     /**
      * Returns the type of Query
+     *
      * @return either of {@link QueryType}.INNER_JOIN or {@link QueryType}.GROUP_BY
      * @throws SQLException in case the SQL query could not be parsed successfully
      */
@@ -204,8 +207,9 @@ public class ParseSQL {
 
     /**
      * Returns the first table of Inner Join, or table for Group By, in SQL Query
+     *
      * @return a value from {@link Tables} denoting the first table of Inner Join, or table for Group By, in SQL Query
-     * @throws SQLException  in case the SQL query could not be parsed successfully
+     * @throws SQLException in case the SQL query could not be parsed successfully
      */
     public Tables getTable1() throws SQLException {
         if (!parsed) {
@@ -216,8 +220,9 @@ public class ParseSQL {
 
     /**
      * Returns the second table of Inner Join in SQL Query
+     *
      * @return a value from {@link Tables} denoting the second table of Inner Join in SQL Query
-     * @throws SQLException  in case the SQL query could not be parsed successfully
+     * @throws SQLException in case the SQL query could not be parsed successfully
      */
     public Tables getTable2() throws SQLException {
         if (!parsed) {
@@ -228,6 +233,7 @@ public class ParseSQL {
 
     /**
      * Returns the list of columns on which SQL operation is to be performed
+     *
      * @return {@link ArrayList<String>} columns on which SQL operation is to be performed
      * @throws SQLException in case the SQL query could not be parsed successfully
      */
@@ -240,6 +246,7 @@ public class ParseSQL {
 
     /**
      * Returns the number to be compared against for Having clause of given SQL query
+     *
      * @return the number to be compared against for the Having clause.
      * @throws SQLException in case the SQL query could not be parsed successfully
      */
@@ -272,6 +279,7 @@ public class ParseSQL {
 
     /**
      * Returns the type of {@link AggregateFunction} used in the SQL query
+     *
      * @return Type of aggregate query used, out of the values of {@link AggregateFunction}
      * @throws SQLException in case SQL query could not be parsed successfully
      */

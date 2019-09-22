@@ -55,8 +55,7 @@ public class InnerJoin {
             if (flag == 1) {
                 val.append(parts[i]);
                 flag = 0;
-            }
-            else {
+            } else {
                 val.append(",").append(parts[i]);
             }
         }
@@ -217,8 +216,7 @@ public class InnerJoin {
         return innerJoinOutput;
     }
 
-    private static class firstMapper extends Mapper<Object, Text, Text, Text>
-    {
+    private static class firstMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 
@@ -236,8 +234,7 @@ public class InnerJoin {
         }
     }
 
-    private static class secondMapper extends Mapper<Object, Text, Text, Text>
-    {
+    private static class secondMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 
@@ -255,8 +252,7 @@ public class InnerJoin {
         }
     }
 
-    private static class ReduceJoinReducer extends Reducer<Text, Text, Text, Text>
-    {
+    private static class ReduceJoinReducer extends Reducer<Text, Text, Text, Text> {
         private static Tables table1;
         private static Tables table2;
 

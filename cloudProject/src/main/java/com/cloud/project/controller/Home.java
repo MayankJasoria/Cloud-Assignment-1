@@ -16,12 +16,6 @@ import java.sql.SQLException;
 @Path("/")
 public class Home {
 
-    @GET
-    @Path("test")
-    public String helloWorld() {
-        return "Hello World!";
-    }
-
     public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
         String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = \"NY\"";
         String query2 = "SELECT userid, sum(rating) FROM Rating GROUP BY userid HAVING SUM(rating)>0";
@@ -85,6 +79,12 @@ public class Home {
 //        System.out.println(DBManager.getColumnIndex(parseSQL.getWhereTable(), parseSQL.getWhereColumn()));
         System.out.println("Having Clause: " + parseSQL.getColumns().get(parseSQL.getColumns().size() - 1)
                 + ">" + parseSQL.getComparisonNumber());
+    }
+
+    @GET
+    @Path("test")
+    public String helloWorld() {
+        return "Hello World!";
     }
 
     @POST

@@ -9,7 +9,6 @@ import org.apache.hadoop.util.Time
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 
-
 object SparkInnerJoin {
 	
 	def execute(parseSQL: ParseSQL, innerJoinOutput: OutputModel): Unit = {
@@ -23,7 +22,7 @@ object SparkInnerJoin {
 		val jk = parseSQL.getOperationColumns.get(0)
 		
 		val startTime = Time.now
-
+		
 		var table1 = sc.read.format("csv").option("header", "false")
 			.load(Globals.getNamenodeUrl + Globals.getCsvInputPath + DBManager.getFileName(parseSQL.getTable1))
 		
@@ -49,56 +48,56 @@ object SparkInnerJoin {
 		parseSQL.getWhereTable match {
 			case `table1Enum` =>
 				table1 = table1.select("*")
-          .where(parseSQL.getWhereColumn
+					.where(parseSQL.getWhereColumn
 						+ "=" + parseSQL.getWhereValue).toDF()
 				table1.show
 			
 			case `table2Enum` =>
 				table2 = table2.select("*")
-          .where(parseSQL.getWhereColumn
+					.where(parseSQL.getWhereColumn
 						+ "=" + parseSQL.getWhereValue).toDF()
 				table2.show
 			
 			case _ => new IllegalArgumentException("Table " + parseSQL.getWhereTable.name
 				+ " is not part of the join tables")
 		}
-
-    val ij = table1.join(table2, table1(jk) === table2(jk)).drop(table2(jk))
+		
+		val ij = table1.join(table2, table1(jk) === table2(jk)).drop(table2(jk))
 		
 		
 		ij.show
-    var plan = "select(" + parseSQL.getWhereTable.name + "[" + parseSQL.getWhereColumn + "] = " + parseSQL.getWhereValue + ")\n"
-    plan = plan + ".join(" + parseSQL.getTable1.name + "[" + jk + "] = " + parseSQL.getTable2.name + "[" + jk + "])\n"
-    plan = plan + ".drop(" + parseSQL.getTable2.name + " [" + jk + "])\n"
-    plan = plan + ".show"
-
-    innerJoinOutput.setSparkPlan(plan)
-
-    //				innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
+		var plan = "select(" + parseSQL.getWhereTable.name + "[" + parseSQL.getWhereColumn + "] = " + parseSQL.getWhereValue + ")\n"
+		plan = plan + ".join(" + parseSQL.getTable1.name + "[" + jk + "] = " + parseSQL.getTable2.name + "[" + jk + "])\n"
+		plan = plan + ".drop(" + parseSQL.getTable2.name + " [" + jk + "])\n"
+		plan = plan + ".show"
+		
+		innerJoinOutput.setSparkPlan(plan)
+		
+		//				innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
 		//innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)
-    val outputPathString = Globals.getNamenodeUrl + Globals.getSparkOutputPath
+		val outputPathString = Globals.getNamenodeUrl + Globals.getSparkOutputPath
 		ij.write.mode(SaveMode.Overwrite).csv(outputPathString)
-
+		
 		val outputPath = new Path(outputPathString)
 		
 		val it = outputPath.getFileSystem(sc.sparkContext.hadoopConfiguration).listFiles(outputPath, false)
-    val downloadUrl = new StringBuilder()
+		val downloadUrl = new StringBuilder()
 		while (it.hasNext) {
 			val file = it.next()
 			if (file.isFile) {
 				val filename = file.getPath.getName
 				if (filename.matches("part-[\\d-*][[a-zA-Z0-9]-]*.*")) {
 					downloadUrl.append(Globals.getWebhdfsHost)
-            .append("/webhdfs/v1")
-            .append(Globals.getSparkOutputPath).append("/")
+						.append("/webhdfs/v1")
+						.append(Globals.getSparkOutputPath).append("/")
 						.append(filename)
 						.append("?op=OPEN\n")
 				}
 			}
 		}
-
-    downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled")
-
-    innerJoinOutput.setSparkOutputUrl(downloadUrl.toString())
+		
+		downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled")
+		
+		innerJoinOutput.setSparkOutputUrl(downloadUrl.toString())
 	}
 }

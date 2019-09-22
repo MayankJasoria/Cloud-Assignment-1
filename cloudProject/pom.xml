@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.cloud.project</groupId>
-    <artifactId>innerjoin</artifactId>
+    <artifactId>cloudProject</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>innerjoin Maven Webapp</name>
+    <name>cloudProject Maven Webapp</name>
     <url>http://maven.apache.org</url>
 
     <distributionManagement>
@@ -20,7 +20,7 @@
     </distributionManagement>
 
     <build>
-        <finalName>innerjoin</finalName>
+        <finalName>cloudproject</finalName>
         <!--<defaultGoal>package</defaultGoal>-->
         <!-- wagon-ssh-external extension is necessary for deploying with scpexe -->
         <extensions>

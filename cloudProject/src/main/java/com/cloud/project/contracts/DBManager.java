@@ -154,9 +154,9 @@ public class DBManager implements Cloneable {
 //     }
 
 
-
     /**
      * Method overridden to ensure that this class is not cloned
+     *
      * @return null
      * @throws CloneNotSupportedException since this class cannot be cloned
      */
