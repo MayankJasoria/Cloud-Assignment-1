@@ -14,16 +14,32 @@ import scala.collection.JavaConverters._
 object SparkGroupBy {
 	
 	def execute(parseSQL: ParseSQL, groupByOutput: OutputModel): Unit = {
-		
+
 		// convert columns to required _c# format, where # denotes a number
+
+    /* get operating columns */
+    var oprCols = ""
+    var flag = 0
+    for (opr <- parseSQL.getOperationColumns.asScala) {
+      if (flag == 0) {
+        oprCols = oprCols + opr
+        flag = 1
+      } else {
+        oprCols = oprCols + "," + opr
+      }
+    }
+
 		for (i <- 0 until parseSQL.getOperationColumns.size()) {
 			parseSQL.getOperationColumns.set(i,
 				"_c" + DBManager.getColumnIndex(parseSQL.getTable1,
 					parseSQL.getOperationColumns.get(i)))
 		}
-		
+
 		// extracting name of column on which aggregate function is applied
 		var aggColumn = parseSQL.getColumns.get(parseSQL.getColumns.size() - 1)
+
+    val aggColStr = aggColumn.split("\\(")(1).split("\\)")(0)
+
 		aggColumn = "_c" + DBManager.getColumnIndex(parseSQL.getTable1,
 			aggColumn.split("\\(")(1).split("\\)")(0))
 		
@@ -34,8 +50,8 @@ object SparkGroupBy {
 		
 		// converting ArrayList of operationColumns to scalaBuffer
 		val scalaBuffer = asScalaBuffer(parseSQL.getOperationColumns)
-		
-		val startTime = Time.now()
+
+    val startTime = Time.now
 		// creating dataframe (time evaluation should start here)
 		var table_df = sc.read.format("csv").option("header", "false")
 			.load(Globals.getNamenodeUrl + Globals.getCsvInputPath + DBManager.getFileName(parseSQL.getTable1))
@@ -71,40 +87,53 @@ object SparkGroupBy {
 			
 			case AggregateFunction.NONE => throw new IllegalArgumentException("The aggregate function is not valid");
 		}
-		
-		val endTime = Time.now()
-		
-		for (a <- 0 until parseSQL.getColumns.size() - 2) {
-			res = res.withColumnRenamed("_c" + a,
-				DBManager.getColumnFromIndex(parseSQL.getTable1,
-					DBManager.getColumnIndex(parseSQL.getTable1, parseSQL.getColumns.get(a))))
-		}
+
+    for (a <- 0 until parseSQL.getColumns.size() - 2) {
+      res = res.withColumnRenamed("_c" + a,
+        DBManager.getColumnFromIndex(parseSQL.getTable1,
+          DBManager.getColumnIndex(parseSQL.getTable1, parseSQL.getColumns.get(a))))
+    }
+
+    res.show
+
+    val endTime = Time.now()
 		
 		res = res.withColumnRenamed("_c" + (parseSQL.getColumns.size - 1),
-			parseSQL.getOperationColumns.get(parseSQL.getOperationColumns.size() - 1));
+      parseSQL.getOperationColumns.get(parseSQL.getOperationColumns.size() - 1))
 		
 		// display the results
-		groupByOutput.setSparkExecutionTime(String.valueOf(endTime - startTime))
-		
+    groupByOutput.setSparkExecutionTime(String.valueOf(endTime - startTime) + " milliseconds")
+
 		//		groupByOutput.setSparkExecutionTime(sc.time(res.show).toString)
-		val outputPathString = Globals.getNamenodeUrl + Globals.getSparkOutputPath;
+    res.show
+    /* plan for GroupBy */
+    var plan = parseSQL.getTable1.name + ".groupBy(" + oprCols + ")\n"
+    plan = plan + ".agg(" + parseSQL.getAggregateFunction + "(" + aggColStr + "))\n"
+    plan = plan + ".filter(" + aggColStr + ">" + parseSQL.getComparisonNumber + ")\n"
+    plan = plan + ".show"
+    groupByOutput.setSparkPlan(plan)
+    //		res.write.format("csv").save("/spark")
+    val outputPathString = Globals.getNamenodeUrl + Globals.getSparkOutputPath
 		val outputPath = new Path(outputPathString)
-		res.write.mode(SaveMode.Overwrite).csv(outputPathString)
-		
+    res.repartition(1).write.mode(SaveMode.Overwrite).csv(outputPathString)
+
 		val it = outputPath.getFileSystem(sc.sparkContext.hadoopConfiguration).listFiles(outputPath, false)
-		var downloadUrl = new StringBuilder();
+    var downloadUrl = new StringBuilder()
 		while (it.hasNext) {
 			val file = it.next()
 			if (file.isFile) {
 				val filename = file.getPath.getName
 				if (filename.matches("part-[\\d-*][[a-zA-Z0-9]-]*.*")) {
-					downloadUrl.append(Globals.getWebhdfsHost).append("/webhdfs/v1/").append(filename).append("?op=OPEN\n")
+          downloadUrl.append(Globals.getWebhdfsHost).append("/webhdfs/v1")
+            .append(Globals.getSparkOutputPath).append("/")
+            .append(filename)
+            .append("?op=OPEN\n")
 				}
 			}
 		}
-		
-		downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled")
-		
-		groupByOutput.setSparkOutputUrl(downloadUrl.toString())
+
+    downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled")
+
+    groupByOutput.setSparkOutputUrl(downloadUrl.toString())
 	}
 }

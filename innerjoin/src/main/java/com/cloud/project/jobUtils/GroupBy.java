@@ -90,7 +90,12 @@ public class GroupBy {
         StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
 
         // mapper input value
-        appendColumns(parsedSQL.getColumns(), mapperScheme);
+//        appendColumns(parsedSQL.getColumns(), mapperScheme);
+        for (int i = 0; i < DBManager.getTableSize(parsedSQL.getTable1()) - 1; i++) {
+            mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(), i)).append(", ");
+        }
+        mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(),
+                DBManager.getTableSize(parsedSQL.getTable1()) - 1));
         mapperScheme.append(")> ---> <(");
 
         // mapper output key
@@ -112,6 +117,7 @@ public class GroupBy {
                         .split("\\(")[1]
                         .split("\\)")[0];
                 mapperScheme.append(aggCol);
+                break;
             default:
                 // not likely to be encountered
                 throw new IllegalArgumentException("The aggregate function is not valid");
@@ -141,6 +147,10 @@ public class GroupBy {
                 reducerScheme.append(aggCol).append("(1), ")
                         .append(aggCol).append("(2), ... ")
                         .append(aggCol).append("(n)");
+                break;
+            default:
+                // not likely to be encountered
+                throw new IllegalArgumentException("The aggregate function is not valid");
         }
 
         // reducer input ends, output starts
@@ -176,7 +186,9 @@ public class GroupBy {
                 String filename = fileStatus.getPath().getName();
                 System.out.println(filename);
                 if (filename.matches("part-r-[0-9]*")) {
-                    downloadUrl.append(Globals.getWebhdfsHost()).append("/webhdfs/v1")
+                    downloadUrl.append(Globals.getWebhdfsHost())
+                            .append("/webhdfs/v1")
+                            .append(Globals.getHadoopOutputPath()).append("/")
                             .append(filename)
                             .append("?op=OPEN\n");
                 }

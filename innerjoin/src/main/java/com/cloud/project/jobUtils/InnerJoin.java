@@ -175,7 +175,7 @@ public class InnerJoin {
 
 
         /* Create reducer scheme */
-        StringBuilder reducerScheme = new StringBuilder("<" + jk + ", (").append(reducerVal).append(")>");
+        StringBuilder reducerScheme = new StringBuilder("<" + jk + ", List(").append(reducerVal).append(")>");
         String str = reducerScheme.toString();
         reducerScheme.append(" ---> ").append(str);
 
@@ -201,7 +201,9 @@ public class InnerJoin {
                 String filename = fileStatus.getPath().getName();
                 System.out.println(filename);
                 if (filename.matches("part-r-[0-9]*")) {
-                    downloadUrl.append(Globals.getWebhdfsHost()).append("/webhdfs/v1")
+                    downloadUrl.append(Globals.getWebhdfsHost())
+                            .append("/webhdfs/v1")
+                            .append(Globals.getHadoopOutputPath()).append("/")
                             .append(filename)
                             .append("?op=OPEN\n");
                 }

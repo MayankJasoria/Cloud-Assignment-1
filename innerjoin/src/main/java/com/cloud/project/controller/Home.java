@@ -24,7 +24,7 @@ public class Home {
 
     public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
         String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = \"NY\"";
-        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+        String query2 = "SELECT userid, sum(rating) FROM Rating GROUP BY userid HAVING SUM(rating)>0";
 
         // parse query to extract attributes
         ParseSQL parseSQL = new ParseSQL(query1);
@@ -49,11 +49,14 @@ public class Home {
 
         System.out.println("FirstMapperExecutionPlan: " + outputModel.getFirstMapperPlan());
         System.out.println("SecondMapperExecutionPlan: " + outputModel.getSecondMapperPlan());
-        System.out.println("ReducerExecutionPlan: " + outputModel.getInnerJoinReducerPlan());
+        System.out.println("GroupByMapperExecutionPlan: " + outputModel.getGroupByMapperPlan());
+        System.out.println("GroupByReducerExecutionPlan: " + outputModel.getGroupByReducerPlan());
+        System.out.println("InnerJoinReducerExecutionPlan: " + outputModel.getInnerJoinReducerPlan());
         System.out.println("Hadoop Execution time: " + outputModel.getHadoopExecutionTime());
         System.out.println("Hadoop Output URL: " + outputModel.getHadoopOutputUrl());
         System.out.println("Spark Execution Time: " + outputModel.getSparkExecutionTime());
         System.out.println("Spark Output URL: " + outputModel.getSparkOutputUrl());
+        System.out.println("Spark Plan: " + outputModel.getSparkPlan());
     }
 
     /**
