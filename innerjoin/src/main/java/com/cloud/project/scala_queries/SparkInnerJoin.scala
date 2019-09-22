@@ -5,7 +5,7 @@ import com.cloud.project.models.OutputModel
 import com.cloud.project.sqlUtils.ParseSQL
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.util.Time
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SaveMode, SparkSession}
 
 
 
@@ -72,7 +72,7 @@ object SparkInnerJoin {
 		//		innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
 		//innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)
 		val outputPathString = "hdfs://localhost:9000/spark";
-		ij.write.format("csv").save(outputPathString)
+		ij.write.mode(SaveMode.Overwrite).csv(outputPathString)
 		
 		val outputPath = new Path(outputPathString)
 		
@@ -82,7 +82,7 @@ object SparkInnerJoin {
 			val file = it.next()
 			if (file.isFile) {
 				val filename = file.getPath.getName
-				if (filename.matches("path-r-[0-9]/^[0-9A-Za-z]+$")) {
+				if (filename.matches("part-[\\d-*][[a-zA-Z0-9]-]*.*")) {
 					downloadUrl.append("http://localhost:9870/webhdfs/v1/").append(filename).append("?op=OPEN\n")
 				}
 			}

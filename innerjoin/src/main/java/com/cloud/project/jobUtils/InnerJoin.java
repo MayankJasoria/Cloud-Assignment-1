@@ -202,7 +202,7 @@ public class InnerJoin {
                 String filename = fileStatus.getPath().getName();
                 System.out.println(filename);
                 if (filename.matches("part-r-[0-9]*")) {
-                    downloadUrl.append("http://localhost:9000/webhdfs/v1")
+                    downloadUrl.append("http://localhost:9870/webhdfs/v1")
                             .append(filename)
                             .append("?op=OPEN\n");
                 }

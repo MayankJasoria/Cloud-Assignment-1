@@ -5,8 +5,8 @@ import com.cloud.project.models.OutputModel
 import com.cloud.project.sqlUtils.{AggregateFunction, ParseSQL}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.util.Time
-import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.collection.JavaConverters._
 
@@ -88,7 +88,7 @@ object SparkGroupBy {
 		//		groupByOutput.setSparkExecutionTime(sc.time(res.show).toString)
 		val outputPathString = "hdfs://localhost:9000/spark";
 		val outputPath = new Path(outputPathString)
-		res.write.format("csv").save(outputPathString)
+		res.write.mode(SaveMode.Overwrite).csv(outputPathString)
 		
 		val it = outputPath.getFileSystem(sc.sparkContext.hadoopConfiguration).listFiles(outputPath, false)
 		var downloadUrl = new StringBuilder();
@@ -96,7 +96,7 @@ object SparkGroupBy {
 			val file = it.next()
 			if (file.isFile) {
 				val filename = file.getPath.getName
-				if (filename.matches("path-r-[0-9]/^[0-9A-Za-z]+$")) {
+				if (filename.matches("part-[\\d-*][[a-zA-Z0-9]-]*.*")) {
 					downloadUrl.append("http://localhost:9870/webhdfs/v1/").append(filename).append("?op=OPEN\n")
 				}
 			}
