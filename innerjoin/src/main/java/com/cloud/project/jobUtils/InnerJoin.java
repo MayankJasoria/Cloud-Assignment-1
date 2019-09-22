@@ -176,7 +176,8 @@ public class InnerJoin {
 
         /* Create reducer scheme */
         StringBuilder reducerScheme = new StringBuilder("<" + jk + ", List(").append(reducerVal).append(")>");
-        String str = reducerScheme.toString();
+        StringBuilder reducerScheme1 = new StringBuilder("<" + jk + ", (").append(reducerVal).append(")>");
+        String str = reducerScheme1.toString();
         reducerScheme.append(" ---> ").append(str);
 
         /* Set Inner Join output */

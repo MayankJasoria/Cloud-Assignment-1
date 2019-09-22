@@ -3,11 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="094883d4-482f-46e6-b381-1ff35214af1c" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cloud/project/controller/Home.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cloud/project/controller/Home.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/GroupBy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/GroupBy.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/InnerJoin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/InnerJoin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cloud/project/scala_queries/SparkGroupBy.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cloud/project/scala_queries/SparkGroupBy.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cloud/project/scala_queries/SparkInnerJoin.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cloud/project/scala_queries/SparkInnerJoin.scala" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -57,9 +53,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="229">
               <caret line="120" column="41" lean-forward="true" selection-start-line="120" selection-start-column="41" selection-end-line="120" selection-end-column="41" />
-              <folding>
-                <element signature="e#41#73#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -69,9 +62,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="302">
               <caret line="92" column="48" lean-forward="true" selection-start-line="92" selection-start-column="48" selection-end-line="92" selection-end-column="59" />
-              <folding>
-                <element signature="e#41#73#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -135,8 +125,8 @@
       <file leaf-file-name="InnerJoin.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/InnerJoin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="67">
-              <caret line="182" column="46" selection-start-line="182" selection-start-column="46" selection-end-line="182" selection-end-column="46" />
+            <state relative-caret-position="157">
+              <caret line="179" column="45" lean-forward="true" selection-start-line="179" selection-start-column="45" selection-end-line="179" selection-end-column="45" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -267,11 +257,11 @@
       <select />
     </treeState>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="x" value="45" />
-    <option name="y" value="-4" />
-    <option name="width" value="1321" />
-    <option name="height" value="772" />
+    <option name="y" value="26" />
+    <option name="width" value="1319" />
+    <option name="height" value="744" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -665,7 +655,14 @@
       <option name="project" value="LOCAL" />
       <updated>1569148368321</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Done">
+      <created>1569172208884</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1569172208884</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">
@@ -678,7 +675,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="45" y="-4" width="1321" height="772" extended-state="6" />
+    <frame x="45" y="24" width="661" height="744" extended-state="4" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.12636505" />
@@ -687,13 +684,13 @@
       <window_info id="Image Layers" order="2" />
       <window_info anchor="right" id="Capture Analysis" order="4" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.123921566" side_tool="true" weight="0.54134166" />
-      <window_info active="true" anchor="right" id="Maven Projects" order="6" visible="true" weight="0.1654902" />
+      <window_info active="true" anchor="right" id="Maven Projects" order="6" visible="true" weight="0.34308943" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.15912637" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8760784" visible="true" weight="0.6474259" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8760784" visible="true" weight="0.5089723" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.38845554" />
       <window_info id="Capture Tool" order="6" />
       <window_info id="Designer" order="3" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22588235" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.46829268" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -746,7 +743,8 @@
     <MESSAGE value="Updated spark plans" />
     <MESSAGE value="Updated spark output to model" />
     <MESSAGE value="YES" />
-    <option name="LAST_COMMIT_MESSAGE" value="YES" />
+    <MESSAGE value="Done" />
+    <option name="LAST_COMMIT_MESSAGE" value="Done" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -1057,9 +1055,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="302">
           <caret line="92" column="48" lean-forward="true" selection-start-line="92" selection-start-column="48" selection-end-line="92" selection-end-column="59" />
-          <folding>
-            <element signature="e#41#73#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1086,16 +1081,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="229">
           <caret line="120" column="41" lean-forward="true" selection-start-line="120" selection-start-column="41" selection-end-line="120" selection-end-column="41" />
-          <folding>
-            <element signature="e#41#73#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/cloud/project/jobUtils/InnerJoin.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="67">
-          <caret line="182" column="46" selection-start-line="182" selection-start-column="46" selection-end-line="182" selection-end-column="46" />
+        <state relative-caret-position="157">
+          <caret line="179" column="45" lean-forward="true" selection-start-line="179" selection-start-column="45" selection-end-line="179" selection-end-column="45" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
