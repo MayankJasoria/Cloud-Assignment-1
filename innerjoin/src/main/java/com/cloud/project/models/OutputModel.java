@@ -10,16 +10,11 @@ public class OutputModel {
     private String SecondMapperPlan;
     private String InnerJoinReducerPlan;
     private String hadoopOutputUrl;
-    private String hadoopOutput;
 
     // spark parameters
     private String sparkExecutionTime;
     private String sparkPlan;
     private String sparkOutputUrl;
-    private String sparkOutput;
-
-    // TODO: specify actual file output
-
 
     public OutputModel() {
         hadoopExecutionTime = null;
@@ -82,14 +77,6 @@ public class OutputModel {
         this.InnerJoinReducerPlan = innerJoinReducerPlan;
     }
 
-    public String getHadoopOutput() {
-        return hadoopOutput;
-    }
-
-    public void setHadoopOutput(String hadoopOutput) {
-        this.hadoopOutput = hadoopOutput;
-    }
-
     public String getHadoopOutputUrl() {
         return hadoopOutputUrl;
     }
@@ -120,13 +107,5 @@ public class OutputModel {
 
     public void setSparkOutputUrl(String sparkOutputUrl) {
         this.sparkOutputUrl = sparkOutputUrl;
-    }
-
-    public String getSparkOutput() {
-        return sparkOutput;
-    }
-
-    public void setSparkOutput(String sparkOutput) {
-        this.sparkOutput = sparkOutput;
     }
 }

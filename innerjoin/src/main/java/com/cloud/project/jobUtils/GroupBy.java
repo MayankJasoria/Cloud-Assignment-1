@@ -6,6 +6,8 @@ import com.cloud.project.sqlUtils.AggregateFunction;
 import com.cloud.project.sqlUtils.ParseSQL;
 import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -154,10 +156,35 @@ public class GroupBy {
         groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
 
         // setting hadoop output URL
-        groupByOutput.setHadoopOutputUrl(
-                "http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN " +
-                        " (Note: WebHDFS should be enabled for this to work)"
-        );
+//        groupByOutput.setHadoopOutputUrl(
+//                "http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN " +
+//                        " (Note: WebHDFS should be enabled for this to work)"
+//        );
+        FileSystem fileSystem = outputPath.getFileSystem(conf);
+//        fileSystem.listFiles(outputPath, false);
+        FileStatus[] fileStatuses = fileSystem.listStatus(outputPath);
+
+        StringBuilder downloadUrl = new StringBuilder();
+
+//        for(FileStatus file : fileStatuses) {
+//            downloadUrl.append("http://localhost:9870/webhdfs/v1/").append(file.)
+//        }
+
+        for (FileStatus fileStatus : fileStatuses) {
+            if (fileStatus.isFile()) {
+                String filename = fileStatus.getPath().getName();
+                System.out.println(filename);
+                if (filename.matches("part-r-[0-9]*")) {
+                    downloadUrl.append("http://localhost:9000/webhdfs/v1")
+                            .append(filename)
+                            .append("?op=OPEN\n");
+                }
+            }
+        }
+
+        downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled");
+
+        groupByOutput.setHadoopOutputUrl(downloadUrl.toString());
 
         return groupByOutput;
     }
