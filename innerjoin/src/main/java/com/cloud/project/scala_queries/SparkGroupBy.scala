@@ -67,5 +67,6 @@ object SparkGroupBy {
 		
 		// display the results
 		res.show
+    groupByOutput.setSparkOutput(res.write.format("csv").toString)
 	}
 }

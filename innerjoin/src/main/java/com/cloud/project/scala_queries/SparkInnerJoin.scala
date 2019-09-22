@@ -52,9 +52,11 @@ object SparkInnerJoin {
 
     val ij = table1.join(table2, table1("_c" + tab1ColIndex) === table2("_c" + tab2ColIndex)).drop(table1("_c" + tab1ColIndex))
     ij.show
+
     val endTime = Time.now
     val execTime = endTime - startTime
     innerJoinOutput.setSparkExecutionTime(execTime.toString)
     ij.write.format("csv").save("hdfs://localhost:9000/spark")
+    innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)
   }
 }
