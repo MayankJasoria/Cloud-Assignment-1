@@ -18,11 +18,21 @@ import org.apache.hadoop.util.Time;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
-
 
 public class GroupBy {
 
+    /**
+     * Executes the Hadoop Map-Reduce job for a Group By query
+     *
+     * @param parsedSQL instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
+     * @return an instance of {@link GroupByOutput} populated with relevant fields from Hadoop execution
+     * @throws IOException            if Hadoop IO fails
+     * @throws InterruptedException   if Hadoop job is interrupted
+     * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
+     * @throws SQLException           if the SQL query could not be parsed successfully
+     */
     public static GroupByOutput execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
 
@@ -77,18 +87,11 @@ public class GroupBy {
         StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
 
         // mapper input value
-        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
-            mapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
-        }
-
-        // end input, start output
-        mapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2)).append(")> ---> <(");
+        appendColumns(parsedSQL.getColumns(), mapperScheme);
+        mapperScheme.append(")> ---> <(");
 
         // mapper output key
-        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
-            mapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
-        }
-        mapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2));
+        appendColumns(parsedSQL.getColumns(), mapperScheme);
         mapperScheme.append("), ");
 
         String aggCol = null;
@@ -121,12 +124,8 @@ public class GroupBy {
         StringBuilder reducerScheme = new StringBuilder("<(");
 
         // reducer input key
-        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
-            reducerScheme.append(parsedSQL.getColumns().get(i)).append(", ");
-        }
-
-        // reducer input key ends, input value starts
-        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2)).append("), {");
+        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        reducerScheme.append("), {");
 
         // reducer input value
         switch (parsedSQL.getAggregateFunction()) {
@@ -136,20 +135,17 @@ public class GroupBy {
             case SUM:
             case MIN:
             case MAX:
-                reducerScheme.append(aggCol + "(1), " + aggCol + "(2), ... " + aggCol + "(n)");
+                reducerScheme.append(aggCol).append("(1), ")
+                        .append(aggCol).append("(2), ... ")
+                        .append(aggCol).append("(n)");
         }
 
         // reducer input ends, output starts
         reducerScheme.append("}> ---> <(");
 
         // reducer output key
-        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
-            reducerScheme.append(parsedSQL.getColumns().get(i)).append(", ");
-        }
-
-        // reducer output key ends
-        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2))
-                .append("), ");
+        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        reducerScheme.append("), ");
 
         // reducer output value
         reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 1)).append(">");
@@ -158,11 +154,30 @@ public class GroupBy {
         groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
 
         // setting hadoop output URL
-        groupByOutput.setHadoopOutputUrl("http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN  (Note: WebHDFS should be enabled for this to work)");
+        groupByOutput.setHadoopOutputUrl(
+                "http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN " +
+                        " (Note: WebHDFS should be enabled for this to work)"
+        );
 
         return groupByOutput;
     }
 
+    /**
+     * Method which appends all columns to a scheme
+     *
+     * @param columns The columns to be appended
+     * @param scheme  The scheme of the map/reduce job to which the columns should be appended
+     */
+    private static void appendColumns(ArrayList<String> columns, StringBuilder scheme) {
+        for (int i = 0; i < columns.size() - 2; i++) {
+            scheme.append(columns.get(i)).append(", ");
+        }
+        scheme.append(columns.get(columns.size() - 2));
+    }
+
+    /**
+     * Class for running the Map job for evaluating the Group By SQL Query
+     */
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
 
         private static String[] columns;
@@ -218,8 +233,10 @@ public class GroupBy {
         }
     }
 
+    /**
+     * Class for running a Combiner job on the results of the Map job for the Group By SQL query
+     */
     public static class GroupByCombiner extends Reducer<Text, Text, Text, Text> {
-
 
         private static AggregateFunction aggregateFunction;
         private static int comparisonNumber;
@@ -271,8 +288,10 @@ public class GroupBy {
         }
     }
 
+    /**
+     * Class for running a Reducer job on the results of the Combiner for the Group By SQL query
+     */
     public static class GroupByReducer extends Reducer<Text, Text, Text, Text> {
-
 
         private static AggregateFunction aggregateFunction;
         private static int comparisonNumber;
