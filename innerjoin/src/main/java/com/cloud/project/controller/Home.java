@@ -1,6 +1,7 @@
 package com.cloud.project.controller;
 
 import com.cloud.project.jobUtils.GroupBy;
+import com.cloud.project.jobUtils.InnerJoin;
 import com.cloud.project.models.InputModel;
 import com.cloud.project.models.OutputModel;
 import com.cloud.project.scala_queries.SparkGroupBy;
@@ -39,10 +40,10 @@ public class Home {
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
                 outputModel = GroupBy.execute(parseSQL);
-//                SparkGroupBy.execute(parseSQL, outputModel);
+                SparkGroupBy.execute(parseSQL, outputModel);
                 break;
             case INNER_JOIN:
-//                outputModel = InnerJoin.execute(parseSQL);
+                outputModel = InnerJoin.execute(parseSQL);
                 SparkInnerJoin.execute(parseSQL, outputModel);
         }
 
@@ -85,9 +86,8 @@ public class Home {
     @Path("query")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public OutputModel resultOfQuery(InputModel inputModel) throws SQLException {
-//        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = MA";
-//        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+    public OutputModel resultOfQuery(InputModel inputModel)
+            throws SQLException, InterruptedException, IOException, ClassNotFoundException {
 
         // parse query to extract attributes
         ParseSQL parseSQL = new ParseSQL(inputModel.getQuery());
@@ -102,11 +102,11 @@ public class Home {
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
-//                outputModel = GroupBy.execute(parseSQL);
+                outputModel = GroupBy.execute(parseSQL);
                 SparkGroupBy.execute(parseSQL, outputModel);
                 break;
             case INNER_JOIN:
-//                outputModel = InnerJoin.execute(parseSQL);
+                outputModel = InnerJoin.execute(parseSQL);
                 SparkInnerJoin.execute(parseSQL, outputModel);
         }
 

@@ -1,7 +1,6 @@
 package com.cloud.project.jobUtils;
 
 import com.cloud.project.contracts.DBManager;
-import com.cloud.project.models.GroupByOutput;
 import com.cloud.project.models.OutputModel;
 import com.cloud.project.sqlUtils.AggregateFunction;
 import com.cloud.project.sqlUtils.ParseSQL;
@@ -28,7 +27,7 @@ public class GroupBy {
      * Executes the Hadoop Map-Reduce job for a Group By query
      *
      * @param parsedSQL instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
-     * @return an instance of {@link GroupByOutput} populated with relevant fields from Hadoop execution
+     * @return an instance of {@link OutputModel} populated with relevant fields from Hadoop execution
      * @throws IOException            if Hadoop IO fails
      * @throws InterruptedException   if Hadoop job is interrupted
      * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
