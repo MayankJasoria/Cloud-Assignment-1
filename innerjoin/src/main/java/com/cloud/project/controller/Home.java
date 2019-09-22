@@ -53,6 +53,37 @@ public class Home {
         return outputModel;
     }
 
+    public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
+        String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
+
+        // parse query to extract attributes
+        ParseSQL parseSQL = new ParseSQL(query2);
+        try {
+            debugging(parseSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        GroupByOutput outputModel = null;
+
+        // call required method
+        switch (parseSQL.getQueryType()) {
+            case GROUP_BY:
+                outputModel = GroupBy.execute(parseSQL);
+//                SparkGroupBy.execute(parseSQL, outputModel);
+//                break;
+            case INNER_JOIN:
+//                outputModel = InnerJoin.execute(parseSQL);
+//                SparkInnerJoin.execute(parseSQL, outputModel);
+        }
+
+        System.out.println("MapperExecutionPlan: " + outputModel.getGroupByMapperPlan());
+        System.out.println("ReducerExecutionPlan: " + outputModel.getGroupByReducerPlan());
+        System.out.println("Execution time: " + outputModel.getHadoopExecutionTime());
+        System.out.println("Output URL: " + outputModel.getHadoopOutputUrl());
+
+    }
+
     /**
      * Method to be used only for debugging
      *
