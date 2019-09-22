@@ -42,9 +42,7 @@ public class InnerJoin {
         }
         String jk = parts[tableKeyIndex];
         StringBuilder val = new StringBuilder(table.name() + "#");
-        /*
-         FIXME: To fix extra ',' in output
-          */
+
         int i = 0;
         int flag = 0;
         if (i != tableKeyIndex) {
