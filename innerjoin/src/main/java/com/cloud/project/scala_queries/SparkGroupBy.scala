@@ -1,12 +1,13 @@
 package com.cloud.project.scala_queries
 
+import com.cloud.project.Globals
 import com.cloud.project.contracts.DBManager
 import com.cloud.project.models.OutputModel
 import com.cloud.project.sqlUtils.{AggregateFunction, ParseSQL}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.util.Time
-import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.collection.JavaConverters._
 
@@ -28,7 +29,7 @@ object SparkGroupBy {
 		
 		// creating a spark session
 		val sc = SparkSession.builder()
-			.master("local[*]") // necessary for allowing spark to use as many laogical datanodes as available
+			.master(Globals.getSparkMaster) // necessary for allowing spark to use as many laogical datanodes as available
 			.getOrCreate()
 		
 		// converting ArrayList of operationColumns to scalaBuffer
@@ -37,7 +38,7 @@ object SparkGroupBy {
 		val startTime = Time.now()
 		// creating dataframe (time evaluation should start here)
 		var table_df = sc.read.format("csv").option("header", "false")
-			.load("hdfs://localhost:9000/" + DBManager.getFileName(parseSQL.getTable1))
+			.load(Globals.getNamenodeUrl + Globals.getCsvInputPath + DBManager.getFileName(parseSQL.getTable1))
 		
 		//		for (a <- 0 until DBManager.getTableSize(parseSQL.getTable1) - 1) {
 		//			table_df = table_df.withColumnRenamed("_c" + a,
@@ -86,9 +87,9 @@ object SparkGroupBy {
 		groupByOutput.setSparkExecutionTime(String.valueOf(endTime - startTime))
 		
 		//		groupByOutput.setSparkExecutionTime(sc.time(res.show).toString)
-		val outputPathString = "hdfs://localhost:9000/spark";
+		val outputPathString = Globals.getNamenodeUrl + Globals.getSparkOutputPath;
 		val outputPath = new Path(outputPathString)
-		res.write.format("csv").save(outputPathString)
+		res.write.mode(SaveMode.Overwrite).csv(outputPathString)
 		
 		val it = outputPath.getFileSystem(sc.sparkContext.hadoopConfiguration).listFiles(outputPath, false)
 		var downloadUrl = new StringBuilder();
@@ -96,8 +97,8 @@ object SparkGroupBy {
 			val file = it.next()
 			if (file.isFile) {
 				val filename = file.getPath.getName
-				if (filename.matches("path-r-[0-9]/^[0-9A-Za-z]+$")) {
-					downloadUrl.append("http://localhost:9870/webhdfs/v1/").append(filename).append("?op=OPEN\n")
+				if (filename.matches("part-[\\d-*][[a-zA-Z0-9]-]*.*")) {
+					downloadUrl.append(Globals.getWebhdfsHost).append("/webhdfs/v1/").append(filename).append("?op=OPEN\n")
 				}
 			}
 		}

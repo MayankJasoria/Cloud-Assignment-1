@@ -27,7 +27,7 @@ public class Home {
         String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
 
         // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(query2);
+        ParseSQL parseSQL = new ParseSQL(query1);
         try {
             debugging(parseSQL);
         } catch (SQLException e) {
@@ -47,9 +47,9 @@ public class Home {
                 SparkInnerJoin.execute(parseSQL, outputModel);
         }
 
-        System.out.println("MapperExecutionPlan: " + outputModel.getGroupByMapperPlan());
-//        System.out.println("SecondMapperExecutionPlan: " + outputModel.getSecondMapperPlan());
-        System.out.println("ReducerExecutionPlan: " + outputModel.getGroupByReducerPlan());
+        System.out.println("FirstMapperExecutionPlan: " + outputModel.getFirstMapperPlan());
+        System.out.println("SecondMapperExecutionPlan: " + outputModel.getSecondMapperPlan());
+        System.out.println("ReducerExecutionPlan: " + outputModel.getInnerJoinReducerPlan());
         System.out.println("Hadoop Execution time: " + outputModel.getHadoopExecutionTime());
         System.out.println("Hadoop Output URL: " + outputModel.getHadoopOutputUrl());
         System.out.println("Spark Execution Time: " + outputModel.getSparkExecutionTime());

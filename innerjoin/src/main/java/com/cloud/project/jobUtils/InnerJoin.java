@@ -1,5 +1,6 @@
 package com.cloud.project.jobUtils;
 
+import com.cloud.project.Globals;
 import com.cloud.project.contracts.DBManager;
 import com.cloud.project.models.OutputModel;
 import com.cloud.project.sqlUtils.ParseSQL;
@@ -78,7 +79,7 @@ public class InnerJoin {
 
         /* #########################################################################*/
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", Globals.getNamenodeUrl());
         conf.setEnum("table1", parsedSQL.getTable1()); //args[3]);
         conf.setEnum("table2", parsedSQL.getTable2());
         Tables table1 = parsedSQL.getTable1();
@@ -93,13 +94,13 @@ public class InnerJoin {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        MultipleInputs.addInputPath(job, new Path("/" +
+        MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable1())),
                 TextInputFormat.class, firstMapper.class);
-        MultipleInputs.addInputPath(job, new Path("/" +
+        MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable2())),
                 TextInputFormat.class, secondMapper.class);
-        Path outputPath = new Path("/output");
+        Path outputPath = new Path(Globals.getHadoopOutputPath());
 
         FileOutputFormat.setOutputPath(job, outputPath);
         outputPath.getFileSystem(conf).delete(outputPath, true);
@@ -115,7 +116,7 @@ public class InnerJoin {
         // mapper input value
         firstMapperScheme.append(DBManager.getColumnFromIndex(table1, 0));
         for (int i = 1; i < DBManager.getTableSize(table1) - 1; i++) {
-            firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
+            firstMapperScheme.append(", ").append(DBManager.getColumnFromIndex(table1, i));
         }
 
         // end input, start output
@@ -136,8 +137,8 @@ public class InnerJoin {
                 reducerVal.append(DBManager.getColumnFromIndex(table1, i));
                 flag = 0;
             } else {
-                firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
-                reducerVal.append(",").append(DBManager.getColumnFromIndex(table1, i));
+                firstMapperScheme.append(", ").append(DBManager.getColumnFromIndex(table1, i));
+                reducerVal.append(", ").append(DBManager.getColumnFromIndex(table1, i));
             }
         }
         firstMapperScheme.append(")>");
@@ -160,16 +161,16 @@ public class InnerJoin {
             flag = 1;
         } else {
             secondMapperScheme.append(DBManager.getColumnFromIndex(table2, 0));
-            reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, 0));
+            reducerVal.append(", ").append(DBManager.getColumnFromIndex(table2, 0));
         }
         for (i = 1; i < DBManager.getTableSize(table2) - 1; i++) {
             if (flag == 1) {
                 secondMapperScheme.append(DBManager.getColumnFromIndex(table2, i));
-                reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, i));
+                reducerVal.append(", ").append(DBManager.getColumnFromIndex(table2, i));
                 flag = 0;
             } else {
-                secondMapperScheme.append(",").append(DBManager.getColumnFromIndex(table2, i));
-                reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, i));
+                secondMapperScheme.append(", ").append(DBManager.getColumnFromIndex(table2, i));
+                reducerVal.append(", ").append(DBManager.getColumnFromIndex(table2, i));
             }
         }
         secondMapperScheme.append(")>");
@@ -202,7 +203,7 @@ public class InnerJoin {
                 String filename = fileStatus.getPath().getName();
                 System.out.println(filename);
                 if (filename.matches("part-r-[0-9]*")) {
-                    downloadUrl.append("http://localhost:9000/webhdfs/v1")
+                    downloadUrl.append(Globals.getWebhdfsHost()).append("/webhdfs/v1")
                             .append(filename)
                             .append("?op=OPEN\n");
                 }

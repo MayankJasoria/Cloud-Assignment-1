@@ -1,5 +1,6 @@
 package com.cloud.project.jobUtils;
 
+import com.cloud.project.Globals;
 import com.cloud.project.contracts.DBManager;
 import com.cloud.project.models.OutputModel;
 import com.cloud.project.sqlUtils.AggregateFunction;
@@ -43,7 +44,7 @@ public class GroupBy {
         Configuration conf = new Configuration();
 
         // like defined in hdfs-site.xml (required for reading file from hdfs)
-        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", Globals.getNamenodeUrl());
 
         // defining properties to be used later by mapper and reducer
         conf.setEnum("table", parsedSQL.getTable1());
@@ -68,11 +69,11 @@ public class GroupBy {
 
         // passing the required csv file as file path
         MultipleInputs.addInputPath(job,
-                new Path("/" + DBManager.getFileName(parsedSQL.getTable1())),
+                new Path(Globals.getCsvInputPath() + DBManager.getFileName(parsedSQL.getTable1())),
                 TextInputFormat.class, GroupByMapper.class);
 
         // defining path of output file
-        Path outputPath = new Path("/output"); // hardcoded for now
+        Path outputPath = new Path(Globals.getHadoopOutputPath());
         FileOutputFormat.setOutputPath(job, outputPath);
 
         // deleting existing outputPath file to allow reusability
@@ -175,7 +176,7 @@ public class GroupBy {
                 String filename = fileStatus.getPath().getName();
                 System.out.println(filename);
                 if (filename.matches("part-r-[0-9]*")) {
-                    downloadUrl.append("http://localhost:9000/webhdfs/v1")
+                    downloadUrl.append(Globals.getWebhdfsHost()).append("/webhdfs/v1")
                             .append(filename)
                             .append("?op=OPEN\n");
                 }
