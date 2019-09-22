@@ -1,17 +1,16 @@
 package com.cloud.project.scala_queries
 
 import com.cloud.project.contracts.DBManager
-import com.cloud.project.models.GroupByOutput
+import com.cloud.project.models.OutputModel
 import com.cloud.project.sqlUtils.{AggregateFunction, ParseSQL}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
-import scala.annotation.switch
 import scala.collection.JavaConverters._
 
 object SparkGroupBy {
-	
-	def execute(parseSQL: ParseSQL, groupByOutput: GroupByOutput): Unit = {
+
+  def execute(parseSQL: ParseSQL, groupByOutput: OutputModel): Unit = {
 		
 		// convert columns to required _c# format, where # denotes a number
 		for (i <- 0 until parseSQL.getOperationColumns.size()) {
@@ -41,7 +40,7 @@ object SparkGroupBy {
 		
 		// perform required operation based on aggregate function (switch-case)
 		// TODO: Fix switch warning (syntax correction possibly needed)
-		(parseSQL.getAggregateFunction: @switch) match {
+    parseSQL.getAggregateFunction match {
 			case AggregateFunction.SUM =>
         res = table_df.groupBy(scalaBuffer.head, scalaBuffer.tail.asInstanceOf[Seq[String]]: _*)
 					.agg(sum(aggColumn).as("sum"))
