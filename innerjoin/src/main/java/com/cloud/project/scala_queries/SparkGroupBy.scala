@@ -70,6 +70,6 @@ object SparkGroupBy {
 		
 		// display the results
 		groupByOutput.setSparkExecutionTime(sc.time(res.show) + "")
-		groupByOutput.setSparkOutput(res.write.format("csv").toString)
+    //groupByOutput.setSparkOutput(res.write.format("csv").toString)
 	}
 }
