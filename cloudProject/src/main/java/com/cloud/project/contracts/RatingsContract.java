@@ -1,5 +1,6 @@
-package contracts;
+package com.cloud.project.contracts;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,6 +10,7 @@ import java.util.HashMap;
 public class RatingsContract {
 
     private static final HashMap<String, Integer> map;
+    private static final ArrayList<String> indToCol;
 
     static {
         map = new HashMap<>();
@@ -18,18 +20,37 @@ public class RatingsContract {
         map.put("timestamp", 3);
     }
 
+    static {
+        indToCol = new ArrayList<>();
+        indToCol.add("userid");
+        indToCol.add("movieid");
+        indToCol.add("rating");
+        indToCol.add("timestamp");
+    }
+
     private RatingsContract() {
         // ensuring that a constructor for this class cannot be created
     }
 
-    public static int getColumnIndex(String column) throws IllegalArgumentException {
+    static int getColumnIndex(String column) throws IllegalArgumentException {
         if (map.containsKey(column)) {
             return map.get(column);
         }
         throw new IllegalArgumentException("Given column does not exist in Rating table");
     }
 
-    public static String getFileName() {
+    static String getColumnFromIndex(int index) throws IllegalArgumentException {
+        if (!(index > indToCol.size() - 1)) {
+            return indToCol.get(index);
+        }
+        throw new IllegalArgumentException("Given column does not exist in Movies table");
+    }
+
+    static int getNumColumns() {
+        return indToCol.size();
+    }
+
+    static String getFileName() {
         return "rating.csv";
     }
 

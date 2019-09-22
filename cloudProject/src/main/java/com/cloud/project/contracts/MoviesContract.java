@@ -1,5 +1,6 @@
-package contracts;
+package com.cloud.project.contracts;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,6 +10,7 @@ import java.util.HashMap;
 public class MoviesContract implements Cloneable {
 
     private static final HashMap<String, Integer> map;
+    private static final ArrayList<String> indToCol;
 
     static {
         map = new HashMap<>();
@@ -35,20 +37,57 @@ public class MoviesContract implements Cloneable {
         map.put("War", 20);
         map.put("Western", 21);
         map.put("Rating", 22);
+
+        indToCol = new ArrayList<>();
+        indToCol.add("movieid");
+        indToCol.add("title");
+        indToCol.add("releasedate");
+        indToCol.add("unknown");
+        indToCol.add("Action");
+        indToCol.add("Adventure");
+        indToCol.add("Animation");
+        indToCol.add("Children");
+        indToCol.add("Comedy");
+        indToCol.add("Crime");
+        indToCol.add("Documentary");
+        indToCol.add("Drama");
+        indToCol.add("Fantasy");
+        indToCol.add("Film_Noir");
+        indToCol.add("Horror");
+        indToCol.add("Musical");
+        indToCol.add("Mystery");
+        indToCol.add("Romance");
+        indToCol.add("Sci_Fi");
+        indToCol.add("Thriller");
+        indToCol.add("War");
+        indToCol.add("Western");
+        indToCol.add("Rating");
     }
 
     private MoviesContract() {
         // making constructor private to restrict external access
     }
 
-    public static int getColumnIndex(String column) throws IllegalArgumentException {
+    static int getColumnIndex(String column) throws IllegalArgumentException {
         if (map.containsKey(column)) {
             return map.get(column);
         }
         throw new IllegalArgumentException("Given column does not exist in Movies table");
     }
 
-    public static String getFileName() {
+    static String getColumnFromIndex(int index) throws IllegalArgumentException {
+        if (!(index > indToCol.size() - 1)) {
+            return indToCol.get(index);
+        }
+        throw new IllegalArgumentException("Given column does not exist in Movies table");
+    }
+
+    static int getNumColumns() {
+        return indToCol.size();
+    }
+
+
+    static String getFileName() {
         return "movies.csv";
     }
 

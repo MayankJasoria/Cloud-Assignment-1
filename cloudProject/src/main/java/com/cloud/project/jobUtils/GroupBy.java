@@ -1,7 +1,14 @@
-package jobUtils;
+package com.cloud.project.jobUtils;
 
-import contracts.DBManager;
+import com.cloud.project.Globals;
+import com.cloud.project.contracts.DBManager;
+import com.cloud.project.models.OutputModel;
+import com.cloud.project.sqlUtils.AggregateFunction;
+import com.cloud.project.sqlUtils.ParseSQL;
+import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -10,23 +17,34 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import sqlUtils.AggregateFunction;
-import sqlUtils.ParseSQL;
-import sqlUtils.Tables;
+import org.apache.hadoop.util.Time;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
-
 
 public class GroupBy {
 
-    public static void execute(ParseSQL parsedSQL) throws IOException,
+    /**
+     * Executes the Hadoop Map-Reduce job for a Group By query
+     *
+     * @param parsedSQL instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
+     * @return an instance of {@link OutputModel} populated with relevant fields from Hadoop execution
+     * @throws IOException            if Hadoop IO fails
+     * @throws InterruptedException   if Hadoop job is interrupted
+     * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
+     * @throws SQLException           if the SQL query could not be parsed successfully
+     */
+    public static OutputModel execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
+
+        OutputModel groupByOutput = new OutputModel();
+
         Configuration conf = new Configuration();
 
         // like defined in hdfs-site.xml (required for reading file from hdfs)
-        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", Globals.getNamenodeUrl());
 
         // defining properties to be used later by mapper and reducer
         conf.setEnum("table", parsedSQL.getTable1());
@@ -51,23 +69,155 @@ public class GroupBy {
 
         // passing the required csv file as file path
         MultipleInputs.addInputPath(job,
-                new Path("/" + DBManager.getFileName(parsedSQL.getTable1())),
+                new Path(Globals.getCsvInputPath() + DBManager.getFileName(parsedSQL.getTable1())),
                 TextInputFormat.class, GroupByMapper.class);
 
         // defining path of output file
-        Path outputPath = new Path("/output"); // hardcoded for now
+        Path outputPath = new Path(Globals.getHadoopOutputPath());
         FileOutputFormat.setOutputPath(job, outputPath);
 
         // deleting existing outputPath file to allow reusability
         outputPath.getFileSystem(conf).delete(outputPath, true);
 
-        job.waitForCompletion(true);
-        long execTime = job.getFinishTime() - job.getStartTime();
+        long startTime = Time.now();
+        long endTime = (job.waitForCompletion(true) ? Time.now() : startTime);
+        long execTime = endTime - startTime;
 
-        // TODO: something about execution time
-        // TODO: write results to JSON output
+        // writing time of execution as output
+        groupByOutput.setHadoopExecutionTime(execTime + " milliseconds");
+
+        // creating scheme for mapper
+        StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
+
+        // mapper input value
+//        appendColumns(parsedSQL.getColumns(), mapperScheme);
+        for (int i = 0; i < DBManager.getTableSize(parsedSQL.getTable1()) - 1; i++) {
+            mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(), i)).append(", ");
+        }
+        mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(),
+                DBManager.getTableSize(parsedSQL.getTable1()) - 1));
+        mapperScheme.append(")> ---> <(");
+
+        // mapper output key
+        appendColumns(parsedSQL.getColumns(), mapperScheme);
+        mapperScheme.append("), ");
+
+        String aggCol = null;
+
+        // mapper output value
+        switch (parsedSQL.getAggregateFunction()) {
+            case COUNT:
+                mapperScheme.append("1");
+                break;
+            case SUM:
+            case MAX:
+            case MIN:
+                aggCol = parsedSQL.getColumns()
+                        .get(parsedSQL.getColumns().size() - 1)
+                        .split("\\(")[1]
+                        .split("\\)")[0];
+                mapperScheme.append(aggCol);
+                break;
+            default:
+                // not likely to be encountered
+                throw new IllegalArgumentException("The aggregate function is not valid");
+        }
+
+        // close mapper output
+        mapperScheme.append(">");
+
+        // write mapper scheme
+        groupByOutput.setGroupByMapperPlan(mapperScheme.toString());
+
+        // creating reducer scheme
+        StringBuilder reducerScheme = new StringBuilder("<(");
+
+        // reducer input key
+        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        reducerScheme.append("), {");
+
+        // reducer input value
+        switch (parsedSQL.getAggregateFunction()) {
+            case COUNT:
+                reducerScheme.append("1, 1, 1, ... 1");
+                break;
+            case SUM:
+            case MIN:
+            case MAX:
+                reducerScheme.append(aggCol).append("(1), ")
+                        .append(aggCol).append("(2), ... ")
+                        .append(aggCol).append("(n)");
+                break;
+            default:
+                // not likely to be encountered
+                throw new IllegalArgumentException("The aggregate function is not valid");
+        }
+
+        // reducer input ends, output starts
+        reducerScheme.append("}> ---> <(");
+
+        // reducer output key
+        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        reducerScheme.append("), ");
+
+        // reducer output value
+        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 1)).append(">");
+
+        // setting reducer plan
+        groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
+
+        // setting hadoop output URL
+//        groupByOutput.setHadoopOutputUrl(
+//                "http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN " +
+//                        " (Note: WebHDFS should be enabled for this to work)"
+//        );
+        FileSystem fileSystem = outputPath.getFileSystem(conf);
+//        fileSystem.listFiles(outputPath, false);
+        FileStatus[] fileStatuses = fileSystem.listStatus(outputPath);
+
+        StringBuilder downloadUrl = new StringBuilder();
+
+//        for(FileStatus file : fileStatuses) {
+//            downloadUrl.append("http://localhost:9870/webhdfs/v1/").append(file.)
+//        }
+
+        for (FileStatus fileStatus : fileStatuses) {
+            if (fileStatus.isFile()) {
+                String filename = fileStatus.getPath().getName();
+                System.out.println(filename);
+                if (filename.matches("part-r-[0-9]*")) {
+                    downloadUrl.append(Globals.getWebhdfsHost())
+                            .append("/webhdfs/v1")
+                            .append(Globals.getHadoopOutputPath()).append("/")
+                            .append(filename)
+                            .append("?op=OPEN\n");
+                }
+            }
+        }
+
+        downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled");
+
+        groupByOutput.setHadoopOutputUrl(downloadUrl.toString());
+
+        return groupByOutput;
     }
 
+    /**
+     * Method which appends all columns to a scheme
+     *
+     * @param columns The columns to be appended
+     * @param scheme  The scheme of the map/reduce job to which the columns should be appended
+     */
+    private static void appendColumns(ArrayList<String> columns, StringBuilder scheme) {
+        for (int i = 0; i < columns.size() - 2; i++) {
+            scheme.append(columns.get(i)).append(", ");
+        }
+        scheme.append(columns.get(columns.size() - 2));
+    }
+
+    /**
+     * Class for running the Map job for evaluating the Group By SQL Query
+     */
     public static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
 
         private static String[] columns;
@@ -123,8 +273,10 @@ public class GroupBy {
         }
     }
 
+    /**
+     * Class for running a Combiner job on the results of the Map job for the Group By SQL query
+     */
     public static class GroupByCombiner extends Reducer<Text, Text, Text, Text> {
-
 
         private static AggregateFunction aggregateFunction;
         private static int comparisonNumber;
@@ -176,8 +328,10 @@ public class GroupBy {
         }
     }
 
+    /**
+     * Class for running a Reducer job on the results of the Combiner for the Group By SQL query
+     */
     public static class GroupByReducer extends Reducer<Text, Text, Text, Text> {
-
 
         private static AggregateFunction aggregateFunction;
         private static int comparisonNumber;

@@ -1,6 +1,6 @@
-package contracts;
+package com.cloud.project.contracts;
 
-import sqlUtils.Tables;
+import com.cloud.project.sqlUtils.Tables;
 
 /**
  * Class that handles returning of the index of a required column from a given table
@@ -20,7 +20,9 @@ public class DBManager implements Cloneable {
      * @return index of the column
      * @throws IllegalArgumentException when either the table or the column are invalid
      */
-    public static int getColumnIndex(Tables table, String column) throws IllegalArgumentException {
+    public static int getColumnIndex(Tables table, String column)
+            throws IllegalArgumentException {
+        //System.out.println(">>>>>>" + table.name() + "." + column);
         switch (table) {
             case USERS:
                 return UsersContract.getColumnIndex(column);
@@ -30,6 +32,47 @@ public class DBManager implements Cloneable {
                 return MoviesContract.getColumnIndex(column);
             case RATING:
                 return RatingsContract.getColumnIndex(column);
+            default:
+                throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
+        }
+    }
+
+    /**
+     * Method that returns column name from given index
+     *
+     * @param table The table in which the column is present
+     * @param index The index whos corresponding name is required
+     * @return Column name
+     * @throws IllegalArgumentException
+     */
+    public static String getColumnFromIndex(Tables table, int index)
+            throws IllegalArgumentException {
+        switch (table) {
+            case USERS:
+                return UsersContract.getColumnFromIndex(index);
+            case ZIPCODES:
+                return ZipcodesContract.getColumnFromIndex(index);
+            case MOVIES:
+                return MoviesContract.getColumnFromIndex(index);
+            case RATING:
+                return RatingsContract.getColumnFromIndex(index);
+            default:
+                throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
+        }
+    }
+
+
+    public static int getTableSize(Tables table)
+            throws IllegalArgumentException {
+        switch (table) {
+            case USERS:
+                return UsersContract.getNumColumns();
+            case ZIPCODES:
+                return ZipcodesContract.getNumColumns();
+            case MOVIES:
+                return MoviesContract.getNumColumns();
+            case RATING:
+                return RatingsContract.getNumColumns();
             default:
                 throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
         }
@@ -111,9 +154,9 @@ public class DBManager implements Cloneable {
 //     }
 
 
-
     /**
      * Method overridden to ensure that this class is not cloned
+     *
      * @return null
      * @throws CloneNotSupportedException since this class cannot be cloned
      */
