@@ -33,9 +33,9 @@ public class InnerJoin {
         if (eqTab == table) {
             String eqCol = context.getConfiguration().get("eqCol");
             int ind = DBManager.getColumnIndex(table, eqCol);
-            //(eqTab.name()+"."+eqCol);
             String val = context.getConfiguration().get("eqVal");
-            if (!val.equalsIgnoreCase(parts[ind].trim())) return;
+            //System.out.println("<---------> Val: " + val + "parts[ind]: " + parts[ind]);
+            if (!(val.trim()).equalsIgnoreCase(parts[ind].trim())) return;
         }
         String jk = parts[tableKeyIndex];
         StringBuilder val = new StringBuilder(table.name() + "#");
@@ -81,10 +81,6 @@ public class InnerJoin {
         conf.setEnum("table2", parsedSQL.getTable2());
         Tables table1 = parsedSQL.getTable1();
         Tables table2 = parsedSQL.getTable2();
-//        String tab_col = parsedSQL.getWhereColumn();
-//        System.out.println("#### TABLE.COLUMN #### : " + tab_col.trim());
-//        String[] sp = tab_col.trim().split(".");
-//        System.out.println("### Size: " + sp.length);
         conf.setEnum("eqTab", parsedSQL.getWhereTable());
         conf.set("eqCol", parsedSQL.getWhereColumn());
         conf.set("eqVal", parsedSQL.getWhereValue());
@@ -110,6 +106,7 @@ public class InnerJoin {
         long execTime = endTime - startTime;
 
 
+        StringBuilder reducerVal = new StringBuilder();
         /* Create mapper scheme */
         StringBuilder firstMapperScheme = new StringBuilder("<serial_number, (");
 
@@ -129,16 +126,19 @@ public class InnerJoin {
             flag = 1;
         } else {
             firstMapperScheme.append(DBManager.getColumnFromIndex(table1, 0));
+            reducerVal.append(DBManager.getColumnFromIndex(table1, 0));
         }
         for (i = 1; i < DBManager.getTableSize(table1) - 1; i++) {
             if (flag == 1) {
                 firstMapperScheme.append(DBManager.getColumnFromIndex(table1, i));
+                reducerVal.append(DBManager.getColumnFromIndex(table1, i));
                 flag = 0;
             } else {
                 firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
+                reducerVal.append(",").append(DBManager.getColumnFromIndex(table1, i));
             }
         }
-        firstMapperScheme.append("), ");
+        firstMapperScheme.append(")>");
 
 
         StringBuilder secondMapperScheme = new StringBuilder("<serial_number, (");
@@ -158,25 +158,32 @@ public class InnerJoin {
             flag = 1;
         } else {
             secondMapperScheme.append(DBManager.getColumnFromIndex(table2, 0));
+            reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, 0));
         }
         for (i = 1; i < DBManager.getTableSize(table2) - 1; i++) {
             if (flag == 1) {
                 secondMapperScheme.append(DBManager.getColumnFromIndex(table2, i));
+                reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, i));
                 flag = 0;
             } else {
                 secondMapperScheme.append(",").append(DBManager.getColumnFromIndex(table2, i));
+                reducerVal.append(",").append(DBManager.getColumnFromIndex(table2, i));
             }
         }
-        secondMapperScheme.append("), ");
+        secondMapperScheme.append(")>");
 
 
         /* Create reducer scheme */
+        StringBuilder reducerScheme = new StringBuilder("<" + jk + ", (").append(reducerVal).append(")>");
+        String str = reducerScheme.toString();
+        reducerScheme.append(" ---> ").append(str);
 
         /* Set Inner Join output */
         innerJoinOutput.setFirstMapperPlan(firstMapperScheme.toString());
         innerJoinOutput.setSecondMapperPlan(secondMapperScheme.toString());
+        innerJoinOutput.setInnerJoinReducerPlan(reducerScheme.toString());
         innerJoinOutput.setHadoopExecutionTime(execTime + " milliseconds");
-        innerJoinOutput.setHadoopOutputUrl("http://localhost:9000/output/part-r-00000?op=OPEN  (Note: WebDFS should be enabled for this to work)");
+        innerJoinOutput.setHadoopOutputUrl("http://localhost:9870/output/part-r-00000  (Note: WebDFS should be enabled for this to work)");
         return innerJoinOutput;
     }
 
@@ -248,7 +255,7 @@ public class InnerJoin {
 
             for (String u : table1List) {
                 for (String z : table2List) {
-                    context.write(key, new Text(u + ',' + z));
+                    context.write(new Text(key.toString() + ","), new Text(u + ',' + z));
                 }
 
             }

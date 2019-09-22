@@ -22,7 +22,7 @@ public class DBManager implements Cloneable {
      */
     public static int getColumnIndex(Tables table, String column)
             throws IllegalArgumentException {
-        System.out.println(">>>>>>" + table.name() + "." + column);
+        //System.out.println(">>>>>>" + table.name() + "." + column);
         switch (table) {
             case USERS:
                 return UsersContract.getColumnIndex(column);
