@@ -1,6 +1,5 @@
 package com.cloud.project.scala_queries
 
-
 import com.cloud.project.contracts.DBManager
 import com.cloud.project.models.OutputModel
 import com.cloud.project.sqlUtils.ParseSQL
@@ -22,8 +21,8 @@ object SparkInnerJoin {
 		val jk = parseSQL.getOperationColumns.get(0)
 		val tab1ColIndex = DBManager.getColumnIndex(parseSQL.getTable1, jk)
 		val tab2ColIndex = DBManager.getColumnIndex(parseSQL.getTable2, jk)
-
-    val startTime = Time.now
+		
+		val startTime = Time.now
 
 		var table1 = sc.read.format("csv").option("header", "false")
 			.load("hdfs://localhost:9000/" + DBManager.getFileName(parseSQL.getTable1))
@@ -62,18 +61,18 @@ object SparkInnerJoin {
 			
 			case _ => new IllegalArgumentException("Table " + parseSQL.getWhereTable.name + " is not part of the join tables")
 		}
-
-    var ij = table1.join(table2, table1(jk) === table2(jk)).drop(table2(jk))
-
-
-    ij.show
-    val endTime = Time.now
-    var execTime = endTime - startTime
-    innerJoinOutput.setSparkExecutionTime(execTime.toString + " milliseconds")
-
-    //		innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
-    //innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)
+		
+		var ij = table1.join(table2, table1(jk) === table2(jk)).drop(table2(jk))
+		
+		
+		ij.show
+		val endTime = Time.now
+		var execTime = endTime - startTime
+		innerJoinOutput.setSparkExecutionTime(execTime.toString + " milliseconds")
+		
+		//		innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
+		//innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)
 		ij.write.format("csv").save("hdfs://localhost:9000/spark")
-
-  }
+		
+	}
 }

@@ -27,7 +27,7 @@ public class Home {
         String query2 = "SELECT userid, movieid, count(rating) FROM Rating GROUP BY userid, movieid HAVING COUNT(rating)>0";
 
         // parse query to extract attributes
-        ParseSQL parseSQL = new ParseSQL(query1);
+        ParseSQL parseSQL = new ParseSQL(query2);
         try {
             debugging(parseSQL);
         } catch (SQLException e) {

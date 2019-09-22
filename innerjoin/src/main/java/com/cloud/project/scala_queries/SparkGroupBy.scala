@@ -13,11 +13,11 @@ object SparkGroupBy {
 	def execute(parseSQL: ParseSQL, groupByOutput: OutputModel): Unit = {
 		
 		// convert columns to required _c# format, where # denotes a number
-		/*for (i <- 0 until parseSQL.getOperationColumns.size()) {
+		for (i <- 0 until parseSQL.getOperationColumns.size()) {
 			parseSQL.getOperationColumns.set(i,
 				"_c" + DBManager.getColumnIndex(parseSQL.getTable1,
 					parseSQL.getOperationColumns.get(i)))
-		}*/
+		}
 		
 		// extracting name of column on which aggregate function is applied
 		var aggColumn = parseSQL.getColumns.get(parseSQL.getColumns.size() - 1)
@@ -36,10 +36,10 @@ object SparkGroupBy {
 		var table_df = sc.read.format("csv").option("header", "false")
 			.load("hdfs://localhost:9000/" + DBManager.getFileName(parseSQL.getTable1))
 		
-		for (a <- 0 until DBManager.getTableSize(parseSQL.getTable1) - 1) {
-			table_df = table_df.withColumnRenamed("_c" + a,
-				DBManager.getColumnFromIndex(parseSQL.getTable1, a));
-		}
+		//		for (a <- 0 until DBManager.getTableSize(parseSQL.getTable1) - 1) {
+		//			table_df = table_df.withColumnRenamed("_c" + a,
+		//				DBManager.getColumnFromIndex(parseSQL.getTable1, a));
+		//		}
 		
 		var res = table_df // this variable will eventually store the results
 		
@@ -68,8 +68,17 @@ object SparkGroupBy {
 			case AggregateFunction.NONE => throw new IllegalArgumentException("The aggregate function is not valid");
 		}
 		
+		for (a <- 0 until parseSQL.getColumns.size() - 2) {
+			res = res.withColumnRenamed("_c" + a,
+				DBManager.getColumnFromIndex(parseSQL.getTable1,
+					DBManager.getColumnIndex(parseSQL.getTable1, parseSQL.getColumns.get(a))))
+		}
+		
+		res = res.withColumnRenamed("_c" + (parseSQL.getColumns.size - 1),
+			parseSQL.getOperationColumns.get(parseSQL.getOperationColumns.size() - 1));
+		
 		// display the results
-		groupByOutput.setSparkExecutionTime(sc.time(res.show) + "")
-    //groupByOutput.setSparkOutput(res.write.format("csv").toString)
+		//		groupByOutput.setSparkExecutionTime(sc.time(res.show).toString)
+		res.write.format("csv").save("/spark")
 	}
 }
