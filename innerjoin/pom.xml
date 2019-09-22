@@ -37,7 +37,7 @@
                 <version>1.6.0</version>
                 <executions>
                     <execution>
-                        <!--                        <phase>test</phase>-->
+                        <phase>test</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>

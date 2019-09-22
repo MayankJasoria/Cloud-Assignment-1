@@ -1,7 +1,9 @@
 package com.cloud.project.controller;
 
 import com.cloud.project.jobUtils.GroupBy;
+import com.cloud.project.jobUtils.InnerJoin;
 import com.cloud.project.models.GroupByOutput;
+import com.cloud.project.models.InnerJoinOutput;
 import com.cloud.project.models.InputModel;
 import com.cloud.project.sqlUtils.ParseSQL;
 
@@ -37,16 +39,16 @@ public class Home {
             e.printStackTrace();
         }
 
-        GroupByOutput outputModel = null;
+        InnerJoinOutput outputModel = null;
 
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
-                outputModel = GroupBy.execute(parseSQL);
+//                outputModel = GroupBy.execute(parseSQL);
 //                SparkGroupBy.execute(parseSQL, outputModel);
 //                break;
             case INNER_JOIN:
-//                outputModel = InnerJoin.execute(parseSQL);
+                outputModel = InnerJoin.execute(parseSQL);
 //                SparkInnerJoin.execute(parseSQL, outputModel);
         }
 

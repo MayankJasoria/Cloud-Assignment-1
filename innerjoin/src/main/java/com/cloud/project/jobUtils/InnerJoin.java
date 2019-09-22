@@ -1,6 +1,7 @@
 package com.cloud.project.jobUtils;
 
 import com.cloud.project.contracts.DBManager;
+import com.cloud.project.models.InnerJoinOutput;
 import com.cloud.project.sqlUtils.ParseSQL;
 import com.cloud.project.sqlUtils.Tables;
 import org.apache.hadoop.conf.Configuration;
@@ -12,6 +13,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.Time;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -22,22 +24,45 @@ public class InnerJoin {
     private static void globalMapper(Tables table, int tableKeyIndex, Text value,
                                      Mapper<Object, Text, Text, Text>.Context context)
             throws IOException, InterruptedException {
+
         String record = value.toString();
         String[] parts = record.split(",");
+
+        /* remove if does not match WHERE clause */
+        String eqTab = context.getConfiguration().get("eqTab");
+        if (eqTab.equalsIgnoreCase(table.name())) {
+            String eqCol = context.getConfiguration().get("eqCol");
+            int ind = DBManager.getColumnIndex(table, eqCol);
+            String val = context.getConfiguration().get("eqVal");
+            if (!val.equalsIgnoreCase(parts[ind])) return;
+        }
         String jk = parts[tableKeyIndex];
         StringBuilder val = new StringBuilder(table.name() + "#");
         /*
          FIXME: To fix extra ',' in output
           */
-        for (int i = 0; i < parts.length; i++) {
+        int i = 0;
+        int flag = 0;
+        if (i != tableKeyIndex) {
+            val.append(parts[i]);
+        } else {
+            flag = 1;
+        }
+        for (i = 1; i < parts.length; i++) {
             if (i == tableKeyIndex) continue;
-            val.append(",").append(parts[i]);
+            if (flag == 1)
+                val.append(parts[i]);
+            else {
+                val.append(",").append(parts[i]);
+            }
         }
         context.write(new Text(jk), new Text(val.toString()));
     }
 
-    public static void execute(ParseSQL parsedSQL) throws IOException,
+    public static InnerJoinOutput execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
+
+        InnerJoinOutput innerJoinOutput = new InnerJoinOutput();
 
         /* get key index for both tables */
         String jk = DBManager.getJoinKey(parsedSQL.getTable1(), parsedSQL.getTable2());
@@ -51,6 +76,13 @@ public class InnerJoin {
         conf.set("fs.defaultFS", "hdfs://localhost:9000");
         conf.setEnum("table1", parsedSQL.getTable1()); //args[3]);
         conf.setEnum("table2", parsedSQL.getTable2());
+        Tables table1 = parsedSQL.getTable1();
+        Tables table2 = parsedSQL.getTable2();
+        String tab_col = parsedSQL.getWhereColumn();
+        String sp[] = tab_col.split(".");
+        conf.set("eqTab", sp[0]);
+        conf.set("eqCol", sp[1]);
+        conf.set("eqVal", parsedSQL.getWhereValue());
         conf.set("jk", jk);
         Job job = Job.getInstance(conf, "InnerJoin");
         job.setJarByClass(InnerJoin.class);
@@ -58,13 +90,48 @@ public class InnerJoin {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        MultipleInputs.addInputPath(job, new Path("/" + DBManager.getFileName(parsedSQL.getTable1())), TextInputFormat.class, firstMapper.class);
-        MultipleInputs.addInputPath(job, new Path("/" + DBManager.getFileName(parsedSQL.getTable2())), TextInputFormat.class, secondMapper.class);
+        MultipleInputs.addInputPath(job, new Path("/" +
+                        DBManager.getFileName(parsedSQL.getTable1())),
+                TextInputFormat.class, firstMapper.class);
+        MultipleInputs.addInputPath(job, new Path("/" +
+                        DBManager.getFileName(parsedSQL.getTable2())),
+                TextInputFormat.class, secondMapper.class);
         Path outputPath = new Path("/output");
 
         FileOutputFormat.setOutputPath(job, outputPath);
         outputPath.getFileSystem(conf).delete(outputPath, true);
-        job.waitForCompletion(true);
+        long startTime = Time.now();
+        long endTime = (job.waitForCompletion(true) ? Time.now() : startTime);
+        long execTime = endTime - startTime;
+
+
+        /* Create mapper scheme */
+        StringBuilder firstMapperScheme = new StringBuilder("<serial_number, (");
+
+        // mapper input value
+        firstMapperScheme.append(DBManager.getColumnFromIndex((table1, 0));
+        for (int i = 1; i < DBManager.getTableSize(table1) - 1; i++) {
+            firstMapperScheme.append(",").append(DBManager.getColumnFromIndex(table1, i));
+        }
+
+        // end input, start output
+        firstMapperScheme.append(")> ---> <(");
+
+        // mapper output key
+        for (int i = 0; i < parsedSQL.getColumns().size() - 2; i++) {
+            firstMapperScheme.append(parsedSQL.getColumns().get(i)).append(", ");
+        }
+        firstMapperScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 2));
+        firstMapperScheme.append("), ");
+
+        /* Create reducer scheme */
+
+        /* Set Inner Join output */
+        innerJoinOutput.setFirstMapperPlan();
+        innerJoinOutput.setSecondMapperPlan();
+        innerJoinOutput.setHadoopExecutionTime(execTime + " milliseconds");
+        innerJoinOutput.setHadoopOutputUrl("http://localhost:9000/output/part-r-00000?op=OPEN  (Note: WebDFS should be enabled for this to work)");
+
     }
 
     private static class firstMapper extends Mapper<Object, Text, Text, Text>

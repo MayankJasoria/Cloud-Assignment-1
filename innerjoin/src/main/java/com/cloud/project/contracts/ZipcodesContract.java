@@ -1,5 +1,6 @@
 package com.cloud.project.contracts;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,6 +10,7 @@ import java.util.HashMap;
 class ZipcodesContract implements Cloneable {
 
     private static final HashMap<String, Integer> map;
+    private static final ArrayList<String> indToCol;
 
     static {
         map = new HashMap<>();
@@ -16,20 +18,37 @@ class ZipcodesContract implements Cloneable {
         map.put("zipcodetype", 1);
         map.put("city", 2);
         map.put("state", 3);
+
+        indToCol = new ArrayList<>();
+        indToCol.add("zipcode");
+        indToCol.add("zipcodetype");
+        indToCol.add("city");
+        indToCol.add("state");
     }
 
     private ZipcodesContract() {
         // ensuring that a constructor for this class cannot be created
     }
 
-    public static int getColumnIndex(String column) throws IllegalArgumentException {
+    static int getColumnIndex(String column) throws IllegalArgumentException {
         if (map.containsKey(column)) {
             return map.get(column);
         }
         throw new IllegalArgumentException("Given column does not exist in Users table");
     }
 
-    public static String getFileName() {
+    static String getColumnFromIndex(int index) throws IllegalArgumentException {
+        if (!(index > indToCol.size() - 1)) {
+            return indToCol.get(index);
+        }
+        throw new IllegalArgumentException("Given column does not exist in Movies table");
+    }
+
+    static int getNumColumns() {
+        return indToCol.size();
+    }
+
+    static String getFileName() {
         return "zipcodes.csv";
     }
 

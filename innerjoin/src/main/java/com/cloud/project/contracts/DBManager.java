@@ -36,6 +36,47 @@ public class DBManager implements Cloneable {
     }
 
     /**
+     * Method that returns column name from given index
+     *
+     * @param table The table in which the column is present
+     * @param index The index whos corresponding name is required
+     * @return Column name
+     * @throws IllegalArgumentException
+     */
+    public static String getColumnFromIndex(Tables table, int index)
+            throws IllegalArgumentException {
+        switch (table) {
+            case USERS:
+                return UsersContract.getColumnFromIndex(index);
+            case ZIPCODES:
+                return ZipcodesContract.getColumnFromIndex(index);
+            case MOVIES:
+                return MoviesContract.getColumnFromIndex(index);
+            case RATING:
+                return RatingsContract.getColumnFromIndex(index);
+            default:
+                throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
+        }
+    }
+
+
+    public static int getTableSize(Tables table)
+            throws IllegalArgumentException {
+        switch (table) {
+            case USERS:
+                return UsersContract.getNumColumns();
+            case ZIPCODES:
+                return ZipcodesContract.getNumColumns();
+            case MOVIES:
+                return MoviesContract.getNumColumns();
+            case RATING:
+                return RatingsContract.getNumColumns();
+            default:
+                throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
+        }
+    }
+
+    /**
      * Method that returns the name of the csv file corresponding to a given table
      *
      * @param table The table corresponding to which the csv file name is required
