@@ -72,6 +72,8 @@ object SparkInnerJoin {
 		plan = plan + ".show"
 		
 		innerJoinOutput.setSparkPlan(plan)
+		val endTime = Time.now()
+		innerJoinOutput.setSparkExecutionTime(String.valueOf(endTime - startTime) + " milliseconds")
 		
 		//				innerJoinOutput.setSparkExecutionTime(sc.time(ij.show). + "")
 		//innerJoinOutput.setSparkOutput(ij.write.format("csv").toString)

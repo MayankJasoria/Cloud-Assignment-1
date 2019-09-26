@@ -17,7 +17,7 @@ import java.sql.SQLException;
 public class Home {
 
     public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
-        String query1 = "SELECT * FROM Users INNER JOIN Zipcodes ON Users.zipcode = Zipcodes.zipcode WHERE Zipcodes.state = \"NY\"";
+        String query1 = "SELECT * FROM  Movies INNER JOIN Rating ON Movies.movieid = Rating.movieid WHERE Rating.rating=4";
         String query2 = "SELECT userid, sum(rating) FROM Rating GROUP BY userid HAVING SUM(rating)>0";
 
         // parse query to extract attributes
