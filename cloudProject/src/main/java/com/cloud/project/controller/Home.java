@@ -13,9 +13,21 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.sql.SQLException;
 
+/**
+ * Class which acts as the home class for the application since all relevant API routes are managed here
+ */
 @Path("/")
 public class Home {
 
+    /**
+     * main method, relevant for debugging purposes in this application
+     *
+     * @param args Array of inputs from the command line. Not used in this method
+     * @throws SQLException           if the SQL query could not be parsed successfully
+     * @throws InterruptedException   if the Hadoop/Spark jobs throw this exception
+     * @throws IOException            if the Hadoop/Spark jobs throw this exception
+     * @throws ClassNotFoundException if the Hadoop/Spark jobs throw this exception
+     */
     public static void main(String[] args) throws SQLException, InterruptedException, IOException, ClassNotFoundException {
         String query1 = "SELECT * FROM  Movies INNER JOIN Rating ON Movies.movieid = Rating.movieid WHERE Rating.rating=4";
         String query2 = "SELECT userid, sum(rating) FROM Rating GROUP BY userid HAVING SUM(rating)>0";
@@ -28,19 +40,23 @@ public class Home {
             e.printStackTrace();
         }
 
+        // creating an instance of OutputModel to store all relevant outputs
         OutputModel outputModel = null;
 
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
+                // query of type group by
                 outputModel = GroupBy.execute(parseSQL);
                 SparkGroupBy.execute(parseSQL, outputModel);
                 break;
             case INNER_JOIN:
+                // query of type inner join
                 outputModel = InnerJoin.execute(parseSQL);
                 SparkInnerJoin.execute(parseSQL, outputModel);
         }
 
+        // display output
         System.out.println("FirstMapperExecutionPlan: " + outputModel.getFirstMapperPlan());
         System.out.println("SecondMapperExecutionPlan: " + outputModel.getSecondMapperPlan());
         System.out.println("GroupByMapperExecutionPlan: " + outputModel.getGroupByMapperPlan());
@@ -54,9 +70,10 @@ public class Home {
     }
 
     /**
-     * Method to be used only for debugging
+     * Method to be used only for debugging. It prints the various tokens as extracted
+     * by the SQL Parser (ParseSQL class)
      *
-     * @param parseSQL class being tested
+     * @param parseSQL instance of parseSQL
      * @throws SQLException if SQL query was not parsed successfully
      */
     private static void debugging(ParseSQL parseSQL) throws SQLException {
@@ -81,12 +98,39 @@ public class Home {
                 + ">" + parseSQL.getComparisonNumber());
     }
 
+    /**
+     * Method to be used to test if the API is live and accepting requests.
+     * <p>
+     * If it works correctly it will display "Hello World!" as an output.
+     * <br>
+     * Otherwise the corresponding errors will be displayed.
+     * </p>
+     *
+     * @return The String "Hello World!"
+     */
     @GET
     @Path("test")
     public String helloWorld() {
         return "Hello World!";
     }
 
+    /**
+     * Method that accepts all POST requests to the /api/query endpoint.
+     * <p>
+     *     This method accepts the POST request and parses the given SQL query as part of the
+     *     body of the request, which is received as {@link InputModel}. Thereafter, depending
+     *     on the type of query as defined by {@link com.cloud.project.sqlUtils.QueryType},
+     *     the appropriate Hadoop and Spark jobs are launched. Once the results of the jobs are
+     *     available, an instance of {@link OutputModel} is returned which is eventually serialized
+     *     by {@link com.owlike.genson.Genson} and returned as a JSON output.
+     * </p>
+     * @param inputModel deserailized JSON input bearing the body of the request
+     * @return instance of {@link OutputModel} to be serialized as a JSON output
+     * @throws SQLException if the given SQL query is not parsed successfully
+     * @throws InterruptedException if the Hadoop/Spark jobs encounter this exception
+     * @throws IOException if the Hadoop/Spark jobs encounter this exception
+     * @throws ClassNotFoundException if the Hadoop/Spark jobs encounter this exception
+     */
     @POST
     @Path("query")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -107,10 +151,12 @@ public class Home {
         // call required method
         switch (parseSQL.getQueryType()) {
             case GROUP_BY:
+                // query of type group by
                 outputModel = GroupBy.execute(parseSQL);
                 SparkGroupBy.execute(parseSQL, outputModel);
                 break;
             case INNER_JOIN:
+                // query of type inner join
                 outputModel = InnerJoin.execute(parseSQL);
                 SparkInnerJoin.execute(parseSQL, outputModel);
         }

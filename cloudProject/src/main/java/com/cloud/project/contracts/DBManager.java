@@ -43,7 +43,7 @@ public class DBManager implements Cloneable {
      * @param table The table in which the column is present
      * @param index The index whos corresponding name is required
      * @return Column name
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException when either the table or the column index are invalid
      */
     public static String getColumnFromIndex(Tables table, int index)
             throws IllegalArgumentException {
@@ -61,7 +61,13 @@ public class DBManager implements Cloneable {
         }
     }
 
-
+    /**
+     * Method to return the number of columns in a table
+     *
+     * @param table The table whose size is desired
+     * @return integer value denoting number of columns in requested table
+     * @throws IllegalArgumentException when the table is invalid
+     */
     public static int getTableSize(Tables table)
             throws IllegalArgumentException {
         switch (table) {
@@ -130,29 +136,6 @@ public class DBManager implements Cloneable {
                         + " or " + table2.name().toLowerCase() + " not exist");
         }
     }
-
-//     /**
-//      * Returns contract class given Table
-//      *
-//      * @param table The table corresponding to which the csv file name is required
-//      * @return csv file name for the given table
-//      * @throws IllegalArgumentException when the table name is invalid (highly unlikely)
-//      */
-//     public static String getFileName(Tables table) throws IllegalArgumentException {
-//         switch (table) {
-//             case USERS:
-//                 return UsersContract.getFileName();
-//             case ZIPCODES:
-//                 return ZipcodesContract.getFileName();
-//             case MOVIES:
-//                 return MoviesContract.getFileName();
-//             case RATING:
-//                 return RatingsContract.getFileName();
-//             default:
-//                 throw new IllegalArgumentException("Table " + table.name().toLowerCase() + " does not exist");
-//         }
-//     }
-
 
     /**
      * Method overridden to ensure that this class is not cloned

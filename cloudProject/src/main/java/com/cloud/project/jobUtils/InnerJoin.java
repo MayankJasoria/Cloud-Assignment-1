@@ -93,10 +93,10 @@ public class InnerJoin {
 
         MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable1())),
-                TextInputFormat.class, firstMapper.class);
+                TextInputFormat.class, FirstMapper.class);
         MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable2())),
-                TextInputFormat.class, secondMapper.class);
+                TextInputFormat.class, SecondMapper.class);
         Path outputPath = new Path(Globals.getHadoopOutputPath());
 
         FileOutputFormat.setOutputPath(job, outputPath);
@@ -217,7 +217,7 @@ public class InnerJoin {
         return innerJoinOutput;
     }
 
-    private static class firstMapper extends Mapper<Object, Text, Text, Text> {
+    private static class FirstMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 
@@ -235,7 +235,7 @@ public class InnerJoin {
         }
     }
 
-    private static class secondMapper extends Mapper<Object, Text, Text, Text> {
+    private static class SecondMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 
