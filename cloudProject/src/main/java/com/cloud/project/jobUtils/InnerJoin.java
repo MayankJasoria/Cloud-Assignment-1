@@ -24,6 +24,18 @@ import java.util.ArrayList;
 
 public class InnerJoin {
 
+    /**
+     * Global Mapper. Maps input tuple to <join_key, tuple - {join_key}>
+     *
+     * @param table The table on which mapping has to be done. Received from either
+     *              firstMapper or secondMapper
+     * @param tableKeyIndex Indicates the column index acting as the join key on this table
+     * @param value Tuple received from from firstMapper.map() or secondMapper.map()
+     * @param context context information
+     * @throws IOException  if hadoop IO fails
+     * @throws InterruptedException if the hadoop job was interrupted
+     */
+
     private static void globalMapper(Tables table, int tableKeyIndex, Text value,
                                      Mapper<Object, Text, Text, Text>.Context context)
             throws IOException, InterruptedException {
@@ -61,6 +73,17 @@ public class InnerJoin {
         }
         context.write(new Text(jk), new Text(val.toString()));
     }
+
+    /**
+     * Executes the Hadoop Map-Reduce job for a Inner Join query.
+     *
+     * @param parsedSQL instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
+     * @return an instance of {@link OutputModel} populated with relevant fields from Hadoop execution
+     * @throws IOException            if Hadoop IO fails
+     * @throws InterruptedException   if Hadoop job is interrupted
+     * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
+     * @throws SQLException           if the SQL query could not be parsed successfully
+     */
 
     public static OutputModel execute(ParseSQL parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
@@ -217,6 +240,10 @@ public class InnerJoin {
         return innerJoinOutput;
     }
 
+    /**
+     *  Class for mapping the first of the two tables to be joined.
+     */
+
     private static class firstMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
@@ -234,6 +261,10 @@ public class InnerJoin {
             globalMapper(table, tableKeyIndex, value, context);
         }
     }
+
+    /**
+     *  Class for mapping the second of the two tables to be joined.
+     */
 
     private static class secondMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
