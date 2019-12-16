@@ -1,0 +1,25 @@
+### Read Me ###
+
+# API Endpoints #
+ - Base url is `http://localhost:8080/cloudproject`.
+ - GET request on `/api/test` : Returns a page displaying Hello World!. Useful for testing if the API is live
+ - POST request on `/api/query` : Request body should be in `application/json` format.
+   - Input Parameter : sqlQuery (String) -> the SQL query to be run
+   - Output : application.json containing the required output parameters.
+
+## Configuration ##
+Global configuration file: com.project.cloud.Globals
+ - This file contains HDFS output paths, which can be configured.
+
+## Project configuration: pom.xml ##
+ - Maven project file for build settings and dependencies.
+
+
+## Requirements ##
+ - The project, built into a webapp has been tested on tomcat8.5.
+ - It may be required to configure the amount of memory allocated to Tomcat JVM.
+
+## Assumptions ##
+ - `<Condition2>` of the `WHERE` clause in `INNER JOIN` query is assumed to be an equality operation in one of the columns of the final table.
+ - `<COLUMNS>` of `SELECT` and `GROUP BY` have been assumed to be the same.
+ - Input value of any Aggregate Function, and the value against which it is compared in `HAVING` clause is assumed to be integer.
