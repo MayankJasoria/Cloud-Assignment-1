@@ -116,10 +116,10 @@ public class InnerJoin {
 
         MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable1())),
-                TextInputFormat.class, firstMapper.class);
+                TextInputFormat.class, FirstMapper.class);
         MultipleInputs.addInputPath(job, new Path(Globals.getCsvInputPath() +
                         DBManager.getFileName(parsedSQL.getTable2())),
-                TextInputFormat.class, secondMapper.class);
+                TextInputFormat.class, SecondMapper.class);
         Path outputPath = new Path(Globals.getHadoopOutputPath());
 
         FileOutputFormat.setOutputPath(job, outputPath);
@@ -197,15 +197,14 @@ public class InnerJoin {
 
 
         /* Create reducer scheme */
-        StringBuilder reducerScheme = new StringBuilder("<" + jk + ", List(").append(reducerVal).append(")>");
-        StringBuilder reducerScheme1 = new StringBuilder("<" + jk + ", (").append(reducerVal).append(")>");
-        String str = reducerScheme1.toString();
-        reducerScheme.append(" ---> ").append(str);
+        String str = "<" + jk + ", (" + reducerVal + ")>";
 
         /* Set Inner Join output */
         innerJoinOutput.setFirstMapperPlan(firstMapperScheme.toString());
         innerJoinOutput.setSecondMapperPlan(secondMapperScheme.toString());
-        innerJoinOutput.setInnerJoinReducerPlan(reducerScheme.toString());
+        String reducerScheme = "<" + jk + ", List(" + reducerVal + ")>" +
+                " ---> " + str;
+        innerJoinOutput.setInnerJoinReducerPlan(reducerScheme);
         innerJoinOutput.setHadoopExecutionTime(execTime + " milliseconds");
 //        innerJoinOutput.setHadoopOutputUrl("http://localhost:9870/output/part-r-00000  (Note: WebDFS should be enabled for this to work)");
 
@@ -244,7 +243,7 @@ public class InnerJoin {
      *  Class for mapping the first of the two tables to be joined.
      */
 
-    private static class firstMapper extends Mapper<Object, Text, Text, Text> {
+    private static class FirstMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 
@@ -266,7 +265,7 @@ public class InnerJoin {
      *  Class for mapping the second of the two tables to be joined.
      */
 
-    private static class secondMapper extends Mapper<Object, Text, Text, Text> {
+    private static class SecondMapper extends Mapper<Object, Text, Text, Text> {
         private static Tables table;
         private static int tableKeyIndex;
 

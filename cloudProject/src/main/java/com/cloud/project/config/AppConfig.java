@@ -7,6 +7,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.ApplicationPath;
 
+/**
+ * Class for managing the root of the api call. Here it is relevant for registering
+ * {@link Genson} with the required configuration as the JSON Parser of the app
+ */
 @ApplicationPath("/api")
 public class AppConfig extends ResourceConfig {
     public AppConfig() {

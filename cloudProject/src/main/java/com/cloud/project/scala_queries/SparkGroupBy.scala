@@ -13,6 +13,12 @@ import scala.collection.JavaConverters._
 
 object SparkGroupBy {
 	
+	/**
+	 * Method which executed the required Spark Job
+	 *
+	 * @param parseSQL      the parsed SQL
+	 * @param groupByOutput Object for storing the output
+	 */
 	def execute(parseSQL: ParseSQL, groupByOutput: OutputModel): Unit = {
 		
 		// convert columns to required _c# format, where # denotes a number
