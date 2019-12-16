@@ -114,7 +114,6 @@ public class DBManager implements Cloneable {
      * @return index of the join key
      * @throws IllegalArgumentException when the table in invalid
      */
-
     public static String getJoinKey(Tables table1, Tables table2)
             throws IllegalArgumentException {
 

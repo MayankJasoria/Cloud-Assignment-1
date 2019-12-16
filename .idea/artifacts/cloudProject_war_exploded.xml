@@ -177,13 +177,13 @@
           <element id="library" level="project" name="Maven: joda-time:joda-time:2.9.9" />
           <element id="library" level="project" name="Maven: com.carrotsearch:hppc:0.7.2" />
           <element id="library" level="project" name="Maven: com.vlkan:flatbuffers:1.2.0-3f79e055" />
-          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.5" />
-          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.5" />
-          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.5" />
-          <element id="library" level="project" name="Maven: com.fasterxml.jackson.module:jackson-module-scala_2.12:2.9.5" />
-          <element id="library" level="project" name="Maven: org.scala-lang:scala-reflect:2.12.4" />
-          <element id="library" level="project" name="Maven: com.fasterxml.jackson.module:jackson-module-paranamer:2.9.5" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.10.1" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.10.1" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-core:2.10.1" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.module:jackson-module-scala_2.12:2.10.1" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.module:jackson-module-paranamer:2.10.1" />
           <element id="library" level="project" name="Maven: org.scala-lang:scala-compiler:2.12.10" />
+          <element id="library" level="project" name="Maven: org.scala-lang:scala-reflect:2.12.10" />
           <element id="library" level="project" name="Maven: org.scala-lang.modules:scala-xml_2.12:1.0.6" />
           <element id="library" level="project" name="Maven: org.scala-lang:scala-library:2.12.10" />
           <element id="library" level="project" name="Maven: javax.servlet:javax.servlet-api:3.1.0" />
