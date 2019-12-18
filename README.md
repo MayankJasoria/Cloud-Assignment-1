@@ -1,4 +1,4 @@
-# Cloud-Assignment-1
+# Hadoop-Spark-SQL
 
 ## API Endpoints
  - Base url is `http://localhost:8080/cloudproject`.
